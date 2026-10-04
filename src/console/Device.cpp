@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include "console/Device.hpp"
 #include "client/CmdLine.hpp"
 #include "os/Gui.hpp"

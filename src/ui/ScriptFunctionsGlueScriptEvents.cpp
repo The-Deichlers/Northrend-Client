@@ -1,3 +1,4 @@
+#include <cstdio>
 #include "ui/ScriptFunctions.hpp"
 #include "client/Client.hpp"
 #include "client/ClientServices.hpp"

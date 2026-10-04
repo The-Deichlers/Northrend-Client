@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <cfloat>
 #include "model/CParticleEmitter2.hpp"
 #include "model/CM2Scene.hpp"

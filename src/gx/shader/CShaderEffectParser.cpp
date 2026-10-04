@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <cstring>
 #include "gx/shader/CShaderEffectParser.hpp"
 

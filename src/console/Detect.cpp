@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include "console/Detect.hpp"
 #include "db/Db.hpp"
 #include "db/Startup_Strings.hpp"

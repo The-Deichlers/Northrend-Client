@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include "gx/CGxDevice.hpp"
 #include "gx/CGxMonitorMode.hpp"
 #include "gx/Gx.hpp"
