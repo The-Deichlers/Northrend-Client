@@ -1,5 +1,6 @@
 #include "util/SFile.hpp"
 #include <cstring>
+#include <cstdio>
 #include <limits>
 #include <bc/Memory.hpp>
 #include <StormLib.h>
@@ -19,7 +20,7 @@ static char s_datapath2[STORM_MAX_PATH] = { 0 };
 uint32_t SFile::s_locale;
 
 // OFFSET: 0x402B20
-void SFile::Initialize()
+int32_t SFile::Initialize()
 {
     //SFile::DisableSFileCheckDisk();
     //SFile::EnableDirectAccess(0);
@@ -32,13 +33,23 @@ void SFile::Initialize()
         datadir = buffer;
     }
 
-    // TODO Why is this here? Not in decompiled output!
+    char normalized[STORM_MAX_PATH] = {};
+    SStrCopy(normalized, datadir, sizeof(normalized));
+    OsFileToBackSlashes(normalized, sizeof(normalized));
+    datadir = normalized;
+
+    if (!OsSetCurrentDirectory(datadir)) {
+        std::fprintf(stderr, "Northrend: cannot access data directory '%s'. Use -datadir <game-directory>.\n", datadir);
+        return 0;
+    }
+
+    // Logs belong to the selected local game directory.
     SLogSetDefaultDirectory(datadir);
 
-    OsSetCurrentDirectory(datadir);
     SFile::SetBasePath(datadir);
     //dword_B2FA10 = 0;
     SFile::SetDataPath("Data\\");
+    return 1;
 }
 
 // TODO Proper implementation

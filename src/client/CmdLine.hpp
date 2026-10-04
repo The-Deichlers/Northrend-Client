@@ -43,7 +43,7 @@ enum CMDOPT {
 
 int32_t CmdLineProcess();
 
-void ProcessCommandLine();
+int32_t ProcessCommandLine();
 
 const char* CmdLineGetString(CMDOPT opt);
 

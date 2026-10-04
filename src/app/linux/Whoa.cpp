@@ -6,7 +6,7 @@ int main(int argc, char* argv[]) {
 
     OsSetCommandLine(argc, argv);
 
-    CommonMain();
+    return CommonMain();
 
     // TODO
 
