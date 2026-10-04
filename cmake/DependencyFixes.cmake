@@ -60,3 +60,21 @@ file(WRITE "${sorted_array_include}/common/array/CSimpleSortedArray.hpp" "${sort
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${sorted_array_original}")
 target_include_directories(common BEFORE PUBLIC "${sorted_array_include}")
 target_include_directories(CommonTest BEFORE PRIVATE "${sorted_array_include}")
+
+# Clear must release storage without ending the lifetime of this polymorphic
+# object. Calling Constructor after an explicit destructor is undefined behavior.
+set(fixed_array_original "${CMAKE_SOURCE_DIR}/lib/squall/storm/array/TSFixedArray.hpp")
+file(READ "${fixed_array_original}" fixed_array_contents)
+set(fixed_array_before "    this->~TSFixedArray<T>();\n    this->Constructor();")
+string(FIND "${fixed_array_contents}" "${fixed_array_before}" fixed_array_match)
+if (fixed_array_match EQUAL -1)
+    message(FATAL_ERROR "Fixed-array Clear correction no longer applies")
+endif ()
+set(fixed_array_after "    for (uint32_t i = 0; i < this->Count(); ++i) {\n        auto element = &this->operator[](i);\n        element->~T();\n    }\n    if (this->Ptr()) {\n        SMemFree(this->Ptr(), this->MemFileName(), this->MemLineNo(), 0x0);\n    }\n    this->Constructor();")
+string(REPLACE "${fixed_array_before}" "${fixed_array_after}" fixed_array_contents "${fixed_array_contents}")
+set(fixed_array_include "${CMAKE_BINARY_DIR}/dependency-fixes/lib/squall")
+file(MAKE_DIRECTORY "${fixed_array_include}/storm/array")
+file(WRITE "${fixed_array_include}/storm/array/TSFixedArray.hpp" "${fixed_array_contents}")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${fixed_array_original}")
+target_include_directories(storm BEFORE PUBLIC "${fixed_array_include}")
+target_include_directories(StormTest BEFORE PRIVATE "${fixed_array_include}")
