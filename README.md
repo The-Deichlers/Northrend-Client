@@ -50,8 +50,9 @@ legitimate 3.3.5a build 12340 data and startup diagnostics.
 build/debug/install/bin/Northrend -datadir '/path/to/WoW-3.3.5a'
 ```
 
-The executable is named `Northrend`. Full game-data launch validation is required
-before Milestone 0 can be declared complete. Actual results and unresolved
+The executable is named `Northrend`. The supplied-data launch passes archive
+preflight but stops at the incomplete macOS GLL capability implementation.
+Successful graphical startup is required before Milestone 0 can be declared complete. Actual results and unresolved
 limitations are recorded in [the milestone report](./docs/milestones/MILESTONE-0-REPORT.md).
 
 ## Development principles

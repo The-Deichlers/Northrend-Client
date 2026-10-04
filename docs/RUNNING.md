@@ -58,6 +58,9 @@ Common failures:
 - Nonexistent/inaccessible root: select the correct parent of `Data`.
 - Missing `AreaTable.dbc` or `GlueXML.toc`: incomplete extraction, archives,
   locale data, or unreadable MPQs; use a complete original data set.
+- Graphics reports fewer than two texture units on macOS GLL: its inherited
+  capability initialization is incomplete; the tested Apple M2 launch stops
+  here with exit status 1. This does not establish that the GPU is unsupported.
 - Further initialization failures: inspect startup, graphics and GlueXML logs.
 - Movies on macOS: no native decoder is bundled by the default build.
 - Audio: optional FMOD is disabled in the default build.

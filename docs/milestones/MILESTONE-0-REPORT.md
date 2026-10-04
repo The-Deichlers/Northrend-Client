@@ -1,10 +1,11 @@
 # Milestone 0 validation report
 
-Status: **incomplete**. Native builds and asset-free startup validation pass.
-A successful launch with legitimate 3.3.5a build 12340 assets has not been tested:
-the developer is obtaining the Windows data set. Debug and Release CI pass on
-macOS, Linux and Windows at code revision c522b7b5.
-Do not merge or mark this milestone complete until these requirements pass.
+Status: **incomplete**. Native builds, automated tests and cross-platform CI pass.
+The supplied Windows HD data set opens and passes required-file preflight in both
+launch layouts, but normal startup stops at the inherited macOS GLL graphics
+capability check. No login UI or successful event-loop session is validated.
+Do not merge or mark this milestone complete until graphical startup is fixed
+and acceptance is satisfied.
 
 ## Machine and toolchain
 
@@ -126,13 +127,52 @@ build/debug/install/bin/Northrend -not-a-real-option
 build/debug/install/bin/Northrend -datadir /path/to/existing-empty-directory
 ```
 
-**Complete data loading and visible graphical startup: not validated.** No
-legitimate game assets were available. The preflight checks AreaTable.dbc and
-GlueXML.toc; it does not certify every asset's version/integrity. Launch beside
-complete data and launch with `-datadir` must both still be exercised.
+**Actual data launch attempted October 4, 2026; graphical startup blocked.**
+The user supplied `/Users/deichler/Downloads/World of Warcraft 3.3.5a HD`.
+Its lowercase `data` directory contains base/enUS MPQs and additional HD patches.
+The local filesystem resolves the loader's capitalization. This is a modified
+asset set; its complete version/integrity and unmodified 12340 compatibility
+have not been independently certified.
+
+Debug, Release and Debug ASan/UBSan `-datadir` launches all open archives and
+pass the AreaTable.dbc/GlueXML.toc preflight. A separate Debug install under
+`/tmp/northrend-m0-adjacent/bin`, with `Data` symlinked to the external data
+folder, gives the same result without `-datadir`, from the repository working
+directory. No proprietary assets were copied into the repository or committed.
+The application writes logs/configuration under its selected root.
+
+All four attempts stop before database and GlueXML/login UI initialization.
+`CGxDeviceGLL::ISetCaps` is explicitly unfinished and never assigns `m_numTmus`
+or `m_numStreams`. The first remains zero and triggers ConsoleDeviceInitialize's
+minimum-two-texture-units rejection. This is an incomplete backend capability
+implementation, not evidence that the Apple M2 GPU lacks texture units. The
+startup also reports many unhandled GLL render states. A proper backend audit
+and implementation, with actual hardware capability queries and rendering
+validation, are required; arbitrary capability values would hide the defect.
+
+Originally this fatal path called `exit(0)` and bypassed startup-log closure.
+The corrected graphics initializer returns its reason to CommonMain, which logs
+it, flushes/closes the startup log and exits **1**. The reason appears in stderr,
+`Logs/Northrend.log` and `Logs/gx.log`. Both launch layouts were repeated after
+the correction. The ASan/UBSan data launch reports no sanitizer error before
+this known failure; coverage does not extend beyond it. Local Debug, Release
+and ASan/UBSan CTest each pass **9/9** after this source change.
+
+Exact launch commands:
+
+```sh
+build/debug/install/bin/Northrend -datadir '/Users/deichler/Downloads/World of Warcraft 3.3.5a HD'
+build/release/install/bin/Northrend -datadir '/Users/deichler/Downloads/World of Warcraft 3.3.5a HD'
+build/debug-asan/install/bin/Northrend -datadir '/Users/deichler/Downloads/World of Warcraft 3.3.5a HD'
+mkdir -p /tmp/northrend-m0-adjacent/bin
+ln -s '/Users/deichler/Downloads/World of Warcraft 3.3.5a HD/data' /tmp/northrend-m0-adjacent/bin/Data
+cmake --install build/debug --prefix /tmp/northrend-m0-adjacent
+/tmp/northrend-m0-adjacent/bin/Northrend
+```
 
 The executable name is Northrend, macOS explicitly sets NSProcessInfo's process
-name to Northrend, and the graphics title uses Northrend. The generated macOS
+name to Northrend, and the graphics title uses Northrend. The GLL window now
+also receives Northrend at creation, before the later general title assignment. The generated macOS
 menu's keyed archive contains Northrend, verified with:
 
 ```sh
@@ -174,7 +214,8 @@ module was validated. Detailed dependency inventory: `docs/BUILDING.md`.
 ## Sanitizers and warnings
 
 Debug tests/startup failures pass UBSan (alignment excluded for inherited data
-layouts) and ASan + UBSan. No full-data or server session was run under sanitizers.
+layouts) and ASan + UBSan. The supplied-data startup was also attempted with ASan/UBSan and reached the
+same graphics rejection; no full UI or server session was run under sanitizers.
 Prebuilt proprietary components are uninstrumented; macOS leak-sanitizer coverage
 was not established. Do not infer broad runtime safety from the small suite.
 
@@ -234,9 +275,10 @@ code revision may trigger new runs; the linked run records the code validation.
 
 ## Remaining blockers and next steps
 
-1. Supply complete legitimate 3.3.5a build 12340 data outside the repository.
-   Validate both supported launch layouts, actual asset loading, graphical
-   renderer/menu/process identity and fatal initialization diagnostics.
+1. Complete and validate the inherited macOS GLL capability/rendering backend.
+   Supplied-data launches reach its rejection in both layouts; successful
+   graphical startup, full asset loading and visible menu/process identity remain
+   blocked. Repeat with an unmodified legitimate 12340 data set as well.
 2. Keep the PR in draft until full-data acceptance is satisfied. CI now passes
    all six configurations; do not merge if subsequent required checks fail.
 3. Upstream the small generated dependency corrections into maintained dependency
