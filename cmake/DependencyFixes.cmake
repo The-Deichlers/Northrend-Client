@@ -84,3 +84,8 @@ target_include_directories(StormTest BEFORE PRIVATE "${fixed_array_include}")
 northrend_correct_source(storm lib/squall/storm/Big.cpp
     "    memcpy(data, output.Ptr(), n);"
     "    if (n) {\n        memcpy(data, output.Ptr(), n);\n    }")
+
+# Decimal digit weights form a 20-by-10 table. Flattening through row zero
+# crosses that row's bounds even when the address lies within the whole table.
+northrend_correct_source(storm lib/squall/storm/String.cpp
+    "s_realDigit[0][v25 + v23]" "s_realDigit[v24][v23]")
