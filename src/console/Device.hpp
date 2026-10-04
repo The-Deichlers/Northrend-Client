@@ -17,7 +17,7 @@ extern char s_windowTitle[256];
 
 void ValidateFormatMonitor(CGxFormat& format);
 
-void ConsoleDeviceInitialize(const char* title);
+const char* ConsoleDeviceInitialize(const char* title);
 
 bool ConsoleDeviceExists();
 

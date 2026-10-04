@@ -674,7 +674,12 @@ int32_t InitializeGlobal() {
     char v15[260];
     SStrCopy(v15, title, sizeof(v15));
 
-    ConsoleDeviceInitialize(v15);
+    if (const char* graphicsError = ConsoleDeviceInitialize(v15)) {
+        SLogWrite(s_startupLog, "Fatal: %s", graphicsError);
+        SLogFlush(s_startupLog);
+        std::fprintf(stderr, "Northrend: %s\n", graphicsError);
+        return 0;
+    }
 
     // OsIMEInitialize();
 

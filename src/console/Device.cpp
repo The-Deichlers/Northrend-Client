@@ -113,7 +113,7 @@ void ConsoleDeviceStereoInitialize() {
     GxAddStereoChangedCallback(OnGxStereoChanged);
 }
 
-void ConsoleDeviceInitialize(const char* title) {
+const char* ConsoleDeviceInitialize(const char* title) {
     GxLogOpen();
 
     s_cvHwDetect = CVar::Register(
@@ -229,7 +229,7 @@ void ConsoleDeviceInitialize(const char* title) {
                 if (bVar1) {
                     GxLog("ConsoleDeviceInitialize(): no output device available!");
                     auto titleRecord = g_Startup_StringsDB.GetRecord(MSG_TITLE_WOW);
-                    auto title       = titleRecord ? titleRecord->m_message : "World of Warcraft";
+                    const char* title = "Northrend";
                     const char* message;
                     if (gxApi == GxApi_D3d9 || gxApi == GxApi_D3d9Ex) {
                         auto messageRecord = g_Startup_StringsDB.GetRecord(MSG_GX_INIT_FAILED_D3D);
@@ -240,7 +240,7 @@ void ConsoleDeviceInitialize(const char* title) {
                     }
                     OsGuiMessageBox(nullptr, 0, message, title);
                     GxLogClose();
-                    exit(0);
+                    return "No graphics output device could be initialized; see Logs/gx.log.";
                 }
 
                 apiFormat = s_desktopFormat;
@@ -267,24 +267,24 @@ void ConsoleDeviceInitialize(const char* title) {
         GxDevDestroy(s_device);
         GxLog("ConsoleDeviceInitialize(): output device does not have dual TMUs!");
         auto titleRecord = g_Startup_StringsDB.GetRecord(MSG_TITLE_WOW);
-        auto title       = titleRecord ? titleRecord->m_message : "World of Warcraft";
+        const char* title = "Northrend";
         auto messageRecord = g_Startup_StringsDB.GetRecord(MSG_HW_UNSUPPORTED);
         auto message       = messageRecord ? messageRecord->m_message : "Your 3D accelerator card is not supported by World of Warcraft. Please install a 3D acceler ator card with dual-TMU support.";
         OsGuiMessageBox(nullptr, 0, message, title);
         GxLogClose();
-        exit(0);
+        return "Graphics backend reports fewer than two texture units; capability initialization or hardware support is insufficient. See Logs/gx.log.";
     }
 
     if (!GxCaps().m_numStreams) {
         GxDevDestroy(s_device);
         GxLog("ConsoleDeviceInitialize(): output device has 0 streams");
         auto titleRecord = g_Startup_StringsDB.GetRecord(MSG_TITLE_WOW);
-        auto title       = titleRecord ? titleRecord->m_message : "World of Warcraft";
+        const char* title = "Northrend";
         auto messageRecord = g_Startup_StringsDB.GetRecord(MSG_HW_UNSUPPORTED);
         auto message       = messageRecord ? messageRecord->m_message : "Your 3D accelerator card is not supported by World of Warcraft. Please install a 3D acceler ator card with dual-TMU support.";
         OsGuiMessageBox(nullptr, 0, message, title);
         GxLogClose();
-        exit(0);
+        return "Graphics backend reports zero vertex streams; see Logs/gx.log.";
     }
 
     switch (GxDevApi()) {
@@ -331,6 +331,7 @@ void ConsoleDeviceInitialize(const char* title) {
     // TODO
     // OsSetSleepInBackground(1);
     // OsSetBackgroundSleepMs(250);
+    return nullptr;
 }
 
 bool ConsoleDeviceExists() {

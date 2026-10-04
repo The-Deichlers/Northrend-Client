@@ -189,7 +189,7 @@ int32_t CGxDeviceGLL::DeviceCreate(int32_t (*windowProc)(void* window, uint32_t 
 
     this->m_glWindow.SetViewClass(GetEngineViewClass());
     this->m_glWindow.Init(rect, nullptr);
-    this->m_glWindow.SetTitle("World of Warcraft");
+    this->m_glWindow.SetTitle("Northrend");
 
     this->m_glDevice.Init(&this->m_glWindow, "WoW", 4, GLTF_D24);
 
