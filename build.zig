@@ -722,7 +722,7 @@ pub fn build(b: *std.Build) void {
   // * app module *
   // **************
   const whoa_app = b.addExecutable(.{
-    .name = "Whoa",
+    .name = "Northrend",
     .target = target,
     .optimize = optimize
   });
