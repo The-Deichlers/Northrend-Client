@@ -1,4 +1,4 @@
-#include "util/Zlib.hpp"
+#include "util/ZLib.hpp"
 #include <storm/Error.hpp>
 #include <zlib/zlib.h>
 #include <bc/memory/Storm.hpp>
