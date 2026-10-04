@@ -1,4 +1,7 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.13)
+
+# Keep old vendored projects usable with CMake 4 without editing their sources.
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
 if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     message(FATAL_ERROR
@@ -9,7 +12,9 @@ if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 endif ()
 
 # OS variables
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14" CACHE STRING "macOS Deployment Target" FORCE)
+if (APPLE AND NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "macOS Deployment Target")
+endif ()
 
 # Project
 project(Northrend)
@@ -24,7 +29,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(CMAKE_BUILD_TYPE Debug)
+if (NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build configuration" FORCE)
+endif ()
+
+include(CTest)
 
 include(lib/system/cmake/system.cmake)
 
@@ -94,6 +103,11 @@ endif ()
 
 option(WHOA_ASAN "Enable AddressSanitizer (MSVC/Clang)" OFF)
 
+if (WHOA_ASAN AND CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+    add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
+    add_link_options(-fsanitize=address)
+endif ()
+
 if (WHOA_ASAN AND MSVC)
     add_compile_options(/fsanitize=address /Zi)
     foreach (flagvar CMAKE_C_FLAGS_DEBUG CMAKE_CXX_FLAGS_DEBUG)
@@ -150,13 +164,15 @@ add_subdirectory(src)
 add_subdirectory(test)
 add_subdirectory(vendor)
 
+include(cmake/DependencyFixes.cmake)
+
 # Movie decoder module
 #
 # Built by default when a vendored xvidcore is present, since the shipped
 # DivxDecoder.dll is 32-bit only and cannot be loaded by a 64-bit client.
 
 file(GLOB WHOA_XVIDCORE_VENDOR_DIRS "${CMAKE_SOURCE_DIR}/vendor/libxvidcore-*")
-if (WHOA_XVIDCORE_VENDOR_DIRS)
+if (WHOA_XVIDCORE_VENDOR_DIRS AND WIN32 AND CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64|amd64|x86_64|x86|i.86")
     set(WHOA_BUILD_XVID_DECODER_DEFAULT 1)
 else ()
     set(WHOA_BUILD_XVID_DECODER_DEFAULT 0)

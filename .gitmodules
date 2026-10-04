@@ -3,7 +3,7 @@
 	url = https://github.com/thunderbrewhq/common.git
 [submodule "lib/squall"]
 	path = lib/squall
-	url = https://github.com/thunderbrewhq/squall.git
+	url = https://github.com/SatyPardus/squall.git
 [submodule "lib/typhoon"]
 	path = lib/typhoon
 	url = https://github.com/thunderbrewhq/typhoon.git
@@ -12,4 +12,4 @@
 	url = https://github.com/thunderbrewhq/system.git
 [submodule "lib/bc"]
 	path = lib/bc
-	url = https://github.com/thunderbrewhq/bc.git
+	url = https://github.com/SatyPardus/bc.git

@@ -40,3 +40,9 @@ target_include_directories(WhoaTest
 )
 
 install(TARGETS WhoaTest DESTINATION "bin")
+
+if (BUILD_TESTING)
+    foreach (test_target WhoaTest BcTest StormTest TempestTest CommonTest)
+        add_test(NAME ${test_target} COMMAND ${test_target})
+    endforeach ()
+endif ()
