@@ -14,9 +14,9 @@
         <customObject id="-3" userLabel="Application"/>
         <menu title="AMainMenu" systemMenu="main" id="29" userLabel="Main Menu">
             <items>
-                <menuItem title="World of Warcraft" id="56">
+                <menuItem title="Northrend" id="56">
                     <modifierMask key="keyEquivalentModifierMask"/>
-                    <menu key="submenu" title="World of Warcraft" systemMenu="apple" id="57">
+                    <menu key="submenu" title="Northrend" systemMenu="apple" id="57">
                         <items>
                             <menuItem title="MENU_ABOUT" id="58">
                                 <modifierMask key="keyEquivalentModifierMask"/>
