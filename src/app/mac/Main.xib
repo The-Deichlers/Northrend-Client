@@ -16,7 +16,7 @@
 				<array class="NSMutableArray" key="NSMenuItems">
 					<object class="IBHIMenuItem" id="374205419">
 						<reference key="NSMenu" ref="783341525"/>
-						<string key="NSTitle">World of Warcraft</string>
+						<string key="NSTitle">Northrend</string>
 						<string key="NSKeyEquiv"/>
 						<int key="NSKeyEquivModMask">1048576</int>
 						<int key="NSMnemonicLoc">2147483647</int>
@@ -31,16 +31,16 @@
 						<string key="NSAction">submenuAction:</string>
 						<reference key="NSTarget" ref="273282363"/>
 						<object class="IBHIMenu" key="NSSubmenu" id="273282363">
-							<string key="NSTitle">World of Warcraft</string>
+							<string key="NSTitle">Northrend</string>
 							<array class="NSMutableArray" key="NSMenuItems">
 								<object class="IBHIMenuItem" id="962291476">
 									<reference key="NSMenu" ref="273282363"/>
-									<string key="NSTitle">About World of Warcraft...</string>
+									<string key="NSTitle">About Northrend...</string>
 									<string key="NSKeyEquiv"/>
 									<int key="NSMnemonicLoc">2147483647</int>
 									<reference key="NSOnImage" ref="678796781"/>
 									<reference key="NSMixedImage" ref="788635175"/>
-									<string key="title">About World of Warcraft...</string>
+									<string key="title">About Northrend...</string>
 									<string key="keyEquivalent"/>
 									<integer value="0" key="disabled"/>
 									<integer value="0" key="checked"/>
@@ -122,7 +122,7 @@
 								</object>
 							</array>
 							<string key="name">_NSAppleMenu</string>
-							<string key="title">World of Warcraft</string>
+							<string key="title">Northrend</string>
 							<integer value="0" key="menuID"/>
 							<integer value="0" key="excludesMarkColumn"/>
 							<integer value="0" key="autoDisable"/>
@@ -130,7 +130,7 @@
 							<integer value="0" key="hidden"/>
 							<integer value="0" key="condenseSeparators"/>
 						</object>
-						<string key="title">World of Warcraft</string>
+						<string key="title">Northrend</string>
 						<string key="keyEquivalent"/>
 						<integer value="0" key="disabled"/>
 						<integer value="0" key="checked"/>
