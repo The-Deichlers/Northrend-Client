@@ -75,3 +75,9 @@ Since Northrend is a faithful implementation of the original 3.3.5a (build 12340
 * Implementations of classes, templates, and functions that may have been present in Storm [should be added to squall](https://github.com/whoahq/squall), the Storm implementation for Northrend.
 
 * Implementations of classes, templates, and functions that may have been present in Tempest [should be added to typhoon](https://github.com/whoahq/typhoon), the Tempest implementation for Northrend.
+
+## Quality bar
+
+Northrend is held to a first-class client standard. Do not merge placeholder implementations, hard-coded shortcuts, knowingly fragile state transitions, silent error handling, or changes that merely make a happy-path demo work. Prefer complete behavior, diagnostics, tests, documentation, and measured performance. If a temporary compatibility shim is unavoidable, make it explicit and track its removal.
+
+Visual asset creation is not a project goal. The client should consume legitimate 3.3.5a data/assets as intended; engineering effort belongs in the application, rendering/runtime behavior, networking, UI systems, platform integration, and tooling.
