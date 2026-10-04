@@ -1,14 +1,13 @@
 if (WHOA_SYSTEM_WIN)
     file(GLOB PRIVATE_SOURCES "win/*.cpp" "win/Whoa.rc")
 
-    add_executable(Whoa WIN32 ${PRIVATE_SOURCES})
+    add_executable(Northrend WIN32 ${PRIVATE_SOURCES})
 
-    # Set debug icon and description if in debug mode
     if (CMAKE_BUILD_TYPE STREQUAL "Debug")
         set(CMAKE_RC_FLAGS ${CMAKE_RC_FLAGS} -DWHOA_APP_DEBUG)
     endif ()
 
-    target_link_libraries(Whoa
+    target_link_libraries(Northrend
         PRIVATE
             client
             event
@@ -25,9 +24,9 @@ if (WHOA_SYSTEM_MAC)
         PROPERTIES COMPILE_FLAGS "-x objective-c++"
     )
 
-    add_executable(Whoa ${PRIVATE_SOURCES})
+    add_executable(Northrend ${PRIVATE_SOURCES})
 
-    target_link_libraries(Whoa
+    target_link_libraries(Northrend
         PRIVATE
             client
             event
@@ -45,9 +44,9 @@ endif ()
 if (WHOA_SYSTEM_LINUX)
     file(GLOB PRIVATE_SOURCES "linux/*.cpp")
 
-    add_executable(Whoa ${PRIVATE_SOURCES})
+    add_executable(Northrend ${PRIVATE_SOURCES})
 
-    target_link_libraries(Whoa
+    target_link_libraries(Northrend
         PRIVATE
             client
             event
@@ -57,9 +56,9 @@ if (WHOA_SYSTEM_LINUX)
     )
 endif ()
 
-target_include_directories(Whoa
+target_include_directories(Northrend
     PRIVATE
         ${CMAKE_SOURCE_DIR}/src
 )
 
-install(TARGETS Whoa DESTINATION "bin")
+install(TARGETS Northrend DESTINATION "bin")
