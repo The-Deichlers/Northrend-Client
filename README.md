@@ -33,43 +33,26 @@ launch -> authenticate -> realm -> character select -> enter world
 -> render player/world -> move -> interact -> play
 ```
 
-## Supported platforms
+## Build and validation status
 
-The inherited codebase targets Windows 10+, macOS 10.14+ including Apple Silicon, and Ubuntu 22.04+.
+CMake is the authoritative full-client build path. Apple Silicon is the primary
+validation target; inherited Windows and Linux targets are also attempted by CI.
+Zig is preserved but its source lists are stale and it is not a supported build
+path for this milestone.
 
-Apple Silicon is our primary hands-on development target, but cross-platform compatibility should be preserved.
+See [docs/BUILDING.md](./docs/BUILDING.md) for dependencies, recursive submodules,
+Debug/Release builds and sanitizers, and [docs/RUNNING.md](./docs/RUNNING.md) for
+legitimate 3.3.5a build 12340 data and startup diagnostics.
 
-## Building with CMake
-
-On Ubuntu:
-
-```bash
-sudo apt install -y libglx-dev libxext-dev libopengl-dev libglvnd-dev
+```sh
+./scripts/build.sh debug clean test
+./scripts/build.sh release clean test
+build/debug/install/bin/Northrend -datadir '/path/to/WoW-3.3.5a'
 ```
 
-Then:
-
-```bash
-mkdir build
-cd build
-cmake ..
-cmake --build . --config Release
-cmake --install .
-```
-
-The installed client executable is named `Northrend`.
-
-## Running
-
-Northrend requires legitimate World of Warcraft 3.3.5a (build 12340) game data.
-
-The data directory can be either a fully extracted MPQ archive set or a directory containing the original `Data` directory and MPQ archives. The client can be launched from the game-data directory or pointed at another directory with:
-
-```
--datadir \path\to\game_dir
-```
-
-The inherited path parser currently expects backslashes for this option, including on macOS and Linux.
+The executable is named `Northrend`. Full game-data launch validation is required
+before Milestone 0 can be declared complete. Actual results and unresolved
+limitations are recorded in [the milestone report](./docs/milestones/MILESTONE-0-REPORT.md).
 
 ## Development principles
 
