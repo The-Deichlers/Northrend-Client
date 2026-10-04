@@ -2,7 +2,10 @@
 #include "util/Unimplemented.hpp"
 #include <console/cvar/Gx.hpp>
 #include <console/Console.hpp>
-#include <console/Device.cpp>
+#include "console/Device.hpp"
+#include "gx/Device.hpp"
+#include "os/Gui.hpp"
+#include <cstring>
 
 // OFFSET: 0x769FF0
 int32_t CCGxRestart(const char* command, const char* argument) {

@@ -534,7 +534,7 @@ int32_t IEvtInputProcess(EvtContext* context, int32_t* shutdown) {
 void IEvtInputSetMouseMode(EvtContext* context, MOUSEMODE mode, uint32_t holdButton) {
     STORM_VALIDATE_BEGIN;
     STORM_VALIDATE(context);
-    STORM_VALIDATE_END;
+    STORM_VALIDATE_END_VOID;
 
     if ((Input::s_buttonState & holdButton) == holdButton) {
         Input::s_mouseHoldButton = holdButton;

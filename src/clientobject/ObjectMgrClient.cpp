@@ -74,7 +74,8 @@ CGObject_C* GetUpdateObject(WGUID guid, bool* reenable) {
 
     obj = GetObjectPtr<CGObject_C*>(&g_tlsBlock.pObjMgr->m_lazyCleanupObjects, guid);
     if (obj) {
-        obj->Unlink();
+        obj->m_linktoslot.Unlink();
+        obj->m_linktofull.Unlink();
         obj->m_link.Unlink();
         g_tlsBlock.pObjMgr->m_objects.Insert(obj, obj->m_hashval, obj->m_key.m_guid);
         if (!g_tlsBlock.pObjMgr->m_visibleObjects.IsLinked(obj) && !g_tlsBlock.pObjMgr->m_pendingReenableObjects.IsLinked(obj)) {
@@ -89,7 +90,8 @@ CGObject_C* GetUpdateObject(WGUID guid, bool* reenable) {
 // OFFSET: 0x4D6FC0
 void ObjDelete(CGObject_C* obj) {
     Mirror_ClearLists(obj);
-    obj->Unlink();
+    obj->m_linktoslot.Unlink();
+    obj->m_linktofull.Unlink();
     auto objMgr = g_tlsBlock.pObjMgr;
     if (objMgr->m_visibleObjects.IsLinked(obj))
         objMgr->m_visibleObjects.UnlinkNode(obj);
@@ -793,7 +795,8 @@ int32_t Packet_SMSG_UPDATE_OBJECT(void* param, NETMESSAGE msgId, uint32_t time, 
         auto deletedObjList = g_tlsBlock.pObjMgr->m_deletedObjects[i - 1];
         auto deletedObj = deletedObjList.Head();
         if (deletedObj && (-120000 - deletedObj->m_disableTime + OsGetAsyncTimeMs()) >= 0) {
-            deletedObj->Unlink();
+            deletedObj->m_linktoslot.Unlink();
+            deletedObj->m_linktofull.Unlink();
             deletedObj->m_link.Unlink();
             ObjFree(deletedObj);
         }

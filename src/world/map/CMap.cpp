@@ -1,3 +1,4 @@
+#include <cfloat>
 #include "world/map/CMap.hpp"
 #include "world/map/CMapObj.hpp"
 #include "world/map/CMapChunk.hpp"
@@ -1500,7 +1501,9 @@ void CMap::ObjectUpdate(CMapEntity* entity, C44Matrix& mat, CAaBox& localBox, CA
 
     C3Vector center = mat.TransformPoint(vec);
     CAaBox box = { origin, origin };
-    CAaSphere sphere = { origin, 0.0f };
+    CAaSphere sphere;
+    sphere.c = origin;
+    sphere.r = 0.0f;
 
     if (localSphere.r > 0.001f) {
         sphere.r = scale * localSphere.r;

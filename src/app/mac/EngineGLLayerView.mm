@@ -1,3 +1,5 @@
+#include "os/Input.hpp"
+#include "os/Queue.hpp"
 #include "app/mac/EngineGLLayerView.h"
 #include "app/mac/MacClient.h"
 #include "event/Input.hpp"

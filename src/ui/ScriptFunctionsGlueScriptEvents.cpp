@@ -669,7 +669,7 @@ int32_t Script_GetCVar(lua_State* L) {
 }
 
 // OFFSET: 0x4DDD90
-static int32_t Script_GetCVarBool(lua_State* L) {
+int32_t Script_GetCVarBool(lua_State* L) {
     if (!lua_isstring(L, 1)) {
         return luaL_error(L, "Usage: GetCVarBool(\"cvar\")");
     }
@@ -718,7 +718,7 @@ int32_t Script_GetCVarDefault(lua_State* L) {
 }
 
 // OFFSET: 0x4DDEA0
-static int32_t Script_GetCVarMin(lua_State* L) {
+int32_t Script_GetCVarMin(lua_State* L) {
     if (!lua_isstring(L, 1)) {
         return luaL_error(L, "Usage: GetCVarMin(\"cvar\")");
     }
@@ -742,7 +742,7 @@ static int32_t Script_GetCVarMin(lua_State* L) {
 }
 
 // OFFSET: 0x4DDF80
-static int32_t Script_GetCVarMax(lua_State* L) {
+int32_t Script_GetCVarMax(lua_State* L) {
     if (!lua_isstring(L, 1)) {
         return luaL_error(L, "Usage: GetCVarMax(\"cvar\")");
     }
@@ -767,7 +767,7 @@ static int32_t Script_GetCVarMax(lua_State* L) {
 }
 
 // OFFSET: 0x4DE090
-static int32_t Script_GetCVarAbsoluteMin(lua_State* L) {
+int32_t Script_GetCVarAbsoluteMin(lua_State* L) {
     if (!lua_isstring(L, 1)) {
         return luaL_error(L, "Usage: GetCVarAbsoluteMin(\"cvar\")");
     }
@@ -789,7 +789,7 @@ static int32_t Script_GetCVarAbsoluteMin(lua_State* L) {
 }
 
 // OFFSET: 0x4DE130
-static int32_t Script_GetCVarAbsoluteMax(lua_State* L) {
+int32_t Script_GetCVarAbsoluteMax(lua_State* L) {
     if (!lua_isstring(L, 1)) {
         return luaL_error(L, "Usage: GetCVarAbsoluteMax(\"cvar\")");
     }

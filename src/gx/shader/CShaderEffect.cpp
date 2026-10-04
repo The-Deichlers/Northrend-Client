@@ -211,9 +211,12 @@ void CShaderEffect::SetLocalLighting(CM2Lighting* lighting, int32_t lightEnabled
             std::min(lighting->m_sunDiffuse.z, 1.0f)
         };
 
-        GxShaderConstantsSet(GxSh_Vertex, 10, &C4Vector(CShaderEffect::s_sunDiffuse), 1);
-        GxShaderConstantsSet(GxSh_Vertex, 11, &C4Vector(CShaderEffect::s_sunAmbient), 1);
-        GxShaderConstantsSet(GxSh_Vertex, 12, &C4Vector(CShaderEffect::s_sunDir), 1);
+        C4Vector diffuseConstant(CShaderEffect::s_sunDiffuse);
+        C4Vector ambientConstant(CShaderEffect::s_sunAmbient);
+        C4Vector directionConstant(CShaderEffect::s_sunDir);
+        GxShaderConstantsSet(GxSh_Vertex, 10, &diffuseConstant, 1);
+        GxShaderConstantsSet(GxSh_Vertex, 11, &ambientConstant, 1);
+        GxShaderConstantsSet(GxSh_Vertex, 12, &directionConstant, 1);
 
         if (CShaderEffect::s_localLightCount) {
             CShaderEffect::ComputeLocalLights(

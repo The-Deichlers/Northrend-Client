@@ -1729,6 +1729,8 @@ void CGxDevice::LightEnable(int index, int32_t enable) {
     }
 }
 
+#if defined(WHOA_SYSTEM_WIN)
+
 int32_t SizingClientWidth(const SizingRect& r) {
     return r.right - r.left - CGxDeviceD3d::s_clientAdjustWidth;
 }
@@ -1796,3 +1798,5 @@ void CGxDevice::SizingAspectMoveRight(SizingRect& r) {
     }
     r.right = r.left + static_cast<int32_t>(CGxDevice::s_windowAspect * SizingClientHeight(r) + 0.5f + CGxDeviceD3d::s_clientAdjustWidth);
 }
+
+#endif // WHOA_SYSTEM_WIN: D3D window sizing

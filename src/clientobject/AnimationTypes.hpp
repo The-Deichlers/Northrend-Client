@@ -4,7 +4,7 @@
 #include <cstdint>
 
 enum ANIMATION_ID : uint32_t {
-    ANIM_NONE = -1,
+    ANIM_NONE = UINT32_MAX,
     ANIM_STAND = 0,
     ANIM_DEATH = 1,
     ANIM_SPELL = 2,

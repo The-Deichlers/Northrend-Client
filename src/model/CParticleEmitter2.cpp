@@ -1,3 +1,4 @@
+#include <cfloat>
 #include "model/CParticleEmitter2.hpp"
 #include "model/CM2Scene.hpp"
 #include "model/CM2Model.hpp"
@@ -1683,7 +1684,7 @@ int32_t CParticleEmitter2::BuildVertex(CParticle2* particle, ParticleVertexWrite
 
     if (this->m_twinkleOnOff < 1.0f || this->m_twinkleScaleSpan != 0.0f) {
         float phase = this->m_twinkleFPS * particle->m_age;
-        twinkleIndex = ((reinterpret_cast<uint32_t>(particle) >> 5) + static_cast<int32_t>(phase)) & 0x7F;
+        twinkleIndex = ((reinterpret_cast<uintptr_t>(particle) >> 5) + static_cast<int32_t>(phase)) & 0x7F;
     }
 
     if (this->m_twinkleOnOff < 1.0f && this->m_twinkleOnOff < s_twinkleTable[twinkleIndex]) {
@@ -1871,7 +1872,7 @@ int32_t CParticleEmitter2::BuildVertex(CParticle2* particle, ParticleVertexWrite
         } else {
             float angle = (particle->m_age * spinRate) + spin;
 
-            if ((this->m_flags & 0x10000) != 0 && (reinterpret_cast<uint32_t>(particle) & 0x20) != 0) {
+            if ((this->m_flags & 0x10000) != 0 && (reinterpret_cast<uintptr_t>(particle) & 0x20) != 0) {
                 angle = -angle;
             }
 

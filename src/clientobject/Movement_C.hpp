@@ -33,9 +33,9 @@ class CMovement_C : public CMovementShared {
     public:
     // Static variables
     static STORM_EXPLICIT_LIST(CPlayerMoveEvent, m_link) s_playerMoveEventFreeList;
-    static World::FacetData CMovement_C::s_moveFacets;
-    static World::FacetData CMovement_C::s_liquidFacets;
-    static CAaBox CMovement_C::s_queryBox;
+    static World::FacetData s_moveFacets;
+    static World::FacetData s_liquidFacets;
+    static CAaBox s_queryBox;
 
     // Static methods
     static CPlayerMoveEvent* AllocPlayerMoveEvent(int32_t eventTime, MoveEventId eventId);

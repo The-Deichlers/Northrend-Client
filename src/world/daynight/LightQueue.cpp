@@ -1,3 +1,4 @@
+#include <cstring>
 #include "world/daynight/LightQueue.hpp"
 #include <bc/memory/Storm.hpp>
 

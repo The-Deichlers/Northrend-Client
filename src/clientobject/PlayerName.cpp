@@ -28,7 +28,7 @@ void PlayerNameInitialize() {
     s_playerNameBatch = GxuFontCreateBatch(1, 1);
 
     CStatus status = {};
-    auto flags = CGxTexFlags::CGxTexFlags(GxTex_Linear, 0, 0, 0, 0, 0, 1);
+    auto flags = CGxTexFlags(GxTex_Linear, 0, 0, 0, 0, 0, 1);
     s_playerNameIcons = TextureCreate("Interface\\TargetingFrame\\UI-RaidTargetingIcons", flags, &status, 0);
     //CStatus::Destroy(status);
 }
@@ -53,9 +53,9 @@ bool ObjectNameShowCallback(CVar* cvar, const char* a2, const char* a3, void* pa
     int32_t v4 = SStrToInt(a3);
     uint32_t prevMask = s_nameMask;
     if (v4)
-        s_nameMask |= reinterpret_cast<uint32_t>(param);
+        s_nameMask |= static_cast<uint32_t>(reinterpret_cast<uintptr_t>(param));
     else
-        s_nameMask &= ~reinterpret_cast<uint32_t>(param);
+        s_nameMask &= ~static_cast<uint32_t>(reinterpret_cast<uintptr_t>(param));
 
     if (prevMask == s_nameMask)
         return true;

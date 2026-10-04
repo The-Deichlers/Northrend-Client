@@ -1,3 +1,4 @@
+#include <cmath>
 #include "world/World.hpp"
 #include "world/LoadingScreen.hpp"
 #include <async/AsyncFileRead.hpp>
@@ -242,7 +243,7 @@ namespace World {
 
     // OFFSET: 0x406DE0
     bool IsValidPosition(float x, float y, float z, float a4) {
-    if (_finite(x) && _finite(y) && _finite(z)) {
+    if (std::isfinite(x) && std::isfinite(y) && std::isfinite(z)) {
         float v4 = -(y - 17066.666f);
         float v5 = -(x - 17066.666f);
         if (a4 > v4)

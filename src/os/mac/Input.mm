@@ -1,8 +1,11 @@
 #include "os/Input.hpp"
+#include "os/internal/Input.hpp"
+#include "os/Queue.hpp"
+#include "os/internal/Queue.hpp"
+#include "app/mac/MacClient.h"
 #include <common/Time.hpp>
 #include <tempest/Vector.hpp>
 
-double Input::s_savedMouseSpeed;
 
 static C2iVector s_mousePos;
 
@@ -18,7 +21,7 @@ int32_t OsInputGet(OSINPUT* id, int32_t* param0, int32_t* param1, int32_t* param
     // TODO
     // Steelseries WoW Mouse logic
 
-    if (Input::s_queueTail == Input::s_queueHead) {
+    if (s_queueTail == s_queueHead) {
         return 0;
     }
 
@@ -46,7 +49,7 @@ void OsInputInitialize() {
     // }
 
     MacClient::SetMouseCoalescingEnabled(true);
-    Input::s_savedMouseSpeed = MacClient::GetMouseSpeed();
+    s_savedMouseSpeed = MacClient::GetMouseSpeed();
 }
 
 bool OsInputIsUsingCocoaEventLoop() {
@@ -71,4 +74,8 @@ void OsInputGetMousePosition(int32_t* x, int32_t* y) {
 
 int32_t OsWindowProc(void* window, uint32_t message, uintptr_t wparam, intptr_t lparam) {
     return 0;
+}
+
+void OsInputPostEvent(OSINPUT id, int32_t param0, int32_t param1, int32_t param2, int32_t param3) {
+    OsQueuePut(id, param0, param1, param2, param3);
 }

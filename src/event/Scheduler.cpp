@@ -5,6 +5,7 @@
 #include "event/EvtContext.hpp"
 #include "event/EvtThread.hpp"
 #include "event/Input.hpp"
+#include "os/Input.hpp"
 #include "event/Queue.hpp"
 #include "event/Synthesize.hpp"
 #include "event/Timer.hpp"
@@ -19,7 +20,7 @@
 #include <storm/Thread.hpp>
 
 #if defined(WHOA_SYSTEM_MAC)
-    #include "event/mac/Event.h"
+    #include "event/mac/Event.hpp"
 #endif
 
 void DestroySchedulerThread(uint32_t a1) {

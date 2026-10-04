@@ -1,3 +1,4 @@
+#include <cmath>
 #include "world/map/CMapObj.hpp"
 #include "world/map/CMap.hpp"
 #include "util/SFile.hpp"
@@ -125,7 +126,7 @@ void CMapObj::Load() {
     this->portalsCount = portalListChunk->size / sizeof(SMOPortal);
 
     for (int32_t i = 0; i < this->portalsCount; i++) {
-        if (std::_Is_nan(this->portalList[i].plane.d)) {
+        if (std::isnan(this->portalList[i].plane.d)) {
             this->portalList[i].plane.n = { 0.0f, 0.0f, 1.0f };
             this->portalList[i].plane.d = 800000.0f;
         }

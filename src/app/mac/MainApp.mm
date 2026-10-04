@@ -1,3 +1,5 @@
+#include "os/Input.hpp"
+#include "os/Queue.hpp"
 #include "app/mac/MainApp.h"
 #include "event/Event.hpp"
 #include "event/Input.hpp"

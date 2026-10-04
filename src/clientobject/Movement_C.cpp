@@ -83,9 +83,12 @@ void CMovement_C::MoveUnits(uint32_t time, uint32_t prevTime) {
     }
 }
 
+// The inherited constructor supplies an empty transport GUID; the base copies it.
+static WGUID s_emptyTransportGuid;
+
 // OFFSET: 0x6EBD30
 CMovement_C::CMovement_C(WGUID* transportGuid, C3Vector& position, float facing, WGUID* guid, CGUnit_C* unit)
-    : CMovementShared(&WGUID(), position, facing, guid) {
+    : CMovementShared(&s_emptyTransportGuid, position, facing, guid) {
     this->m_collisionRadius = 0.33333334f;
     this->m_collisionHeight = 2.0277777f;
     this->m_stepUpHeight = 1.0f;
@@ -1394,7 +1397,8 @@ void CMovement_C::CallMoveEventHandlers(uint32_t time, int32_t timeRemaining, ui
             if (target) {
                 C3Vector targetPos;
                 target->GetPosition(targetPos);
-                this->SetFacing(CalculateFacingTo(&this->GetPassengerPosition(), &targetPos));
+                C3Vector passengerPosition = this->GetPassengerPosition();
+                this->SetFacing(CalculateFacingTo(&passengerPosition, &targetPos));
             }
         } else if ((faceFlags & 0x8000) != 0) {
             this->m_facing = CalculateFacingTo(&this->m_position, &spline->face.spot);
