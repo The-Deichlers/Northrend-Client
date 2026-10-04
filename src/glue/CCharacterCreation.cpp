@@ -1,3 +1,4 @@
+#include <cstring>
 #include "glue/CCharacterCreation.hpp"
 #include "componentcore/CCharacterComponent.hpp"
 #include "glue/CCharacterSelection.hpp"

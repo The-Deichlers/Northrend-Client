@@ -1,3 +1,4 @@
+#include <cstring>
 #include "gx/shader/CShaderEffectParser.hpp"
 
 static const int32_t EFFECT_ARG_SIZE = 64;

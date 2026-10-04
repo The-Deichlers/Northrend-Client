@@ -1,3 +1,4 @@
+#include <cstring>
 #include <cmath>
 #include "ui/FrameScript.hpp"
 #include "ui/FrameScriptInternal.hpp"

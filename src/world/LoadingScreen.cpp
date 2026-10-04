@@ -1,3 +1,4 @@
+#include <cstring>
 #include "world/LoadingScreen.hpp"
 #include <common/time/Time.hpp>
 #include <event/Event.hpp>

@@ -1,3 +1,4 @@
+#include <cstring>
 #include "console/Console.hpp"
 #include "console/Command.hpp"
 #include "console/command/Commands.hpp"

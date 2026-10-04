@@ -1,3 +1,4 @@
+#include <cstring>
 #include <cmath>
 #include "world/daynight/DayNight.hpp"
 #include "world/daynight/DNInfo.hpp"

@@ -1,3 +1,4 @@
+#include <cstring>
 #include "gx/gll/GLBuffer.h"
 #include "gx/gll/GLDevice.h"
 #include "gx/gll/GLPool.h"

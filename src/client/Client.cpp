@@ -1,3 +1,4 @@
+#include <cstring>
 #include "client/Client.hpp"
 #include "async/AsyncFile.hpp"
 #include "client/ClientServices.hpp"

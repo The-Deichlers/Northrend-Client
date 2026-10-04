@@ -1,3 +1,4 @@
+#include <cstring>
 #include "client/ClientServices.hpp"
 #include "client/ClientRealmResponseAdapter.hpp"
 #include "glue/CGlueMgr.hpp"

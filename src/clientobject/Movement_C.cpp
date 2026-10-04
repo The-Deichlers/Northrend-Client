@@ -1,3 +1,4 @@
+#include <cstring>
 #include <cmath>
 #include "clientobject/Movement_C.hpp"
 #include "clientobject/Movement.hpp"

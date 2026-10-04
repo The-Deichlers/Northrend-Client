@@ -1,3 +1,4 @@
+#include <cstring>
 #include "gx/gll/GLShader.h"
 #include "gx/gll/GLDevice.h"
 #include "gx/gll/GLPixelShader.h"

@@ -1,3 +1,4 @@
+#include <cstring>
 #include "componentcore/ComponentUtils.hpp"
 #include "componentcore/CCharacterComponent.hpp"
 #include "db/Db.hpp"

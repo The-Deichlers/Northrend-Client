@@ -1,3 +1,4 @@
+#include <cstring>
 #include <cmath>
 #include "gameui/camera/CGCamera.hpp"
 #include "gx/Transform.hpp"

@@ -1,3 +1,4 @@
+#include <cstring>
 #include "clientobject/ObjectMgrClient.hpp"
 #include "clientobject/Mirror.hpp"
 #include "client/ClientServices.hpp"

@@ -1,3 +1,4 @@
+#include <cstring>
 #include "clientobject/PlayerName.hpp"
 #include "ui/FrameScript.hpp"
 #include <gx/Font.hpp>

@@ -1,3 +1,4 @@
+#include <cstring>
 #include "glue/CGlueMgr.hpp"
 #include "glue/CRealmList.hpp"
 #include "glue/CCharacterSelection.hpp"

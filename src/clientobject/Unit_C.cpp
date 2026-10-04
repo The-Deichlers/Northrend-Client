@@ -1,3 +1,4 @@
+#include <cstring>
 #include <cmath>
 #include "clientobject/Unit_C.hpp"
 

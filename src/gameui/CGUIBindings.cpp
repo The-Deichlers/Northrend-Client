@@ -1,3 +1,4 @@
+#include <cstring>
 #include "gameui/CGUIBindings.hpp"
 #include "gameui/CGGameUI.hpp"
 #include "ui/FrameScript.hpp"

@@ -1,3 +1,4 @@
+#include <cstring>
 #include <cmath>
 #include "world/map/CMapRenderChunk.hpp"
 #include "world/map/CMapChunk.hpp"

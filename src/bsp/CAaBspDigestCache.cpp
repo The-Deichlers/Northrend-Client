@@ -1,3 +1,4 @@
+#include <cstring>
 #include "bsp/CAaBspDigestCache.hpp"
 #include "bsp/AaBsp.hpp"
 

@@ -1,3 +1,4 @@
+#include <cstring>
 #include "ui/CSimpleModel.hpp"
 #include "gx/Camera.hpp"
 #include "gx/Coordinate.hpp"

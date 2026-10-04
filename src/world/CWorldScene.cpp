@@ -1,3 +1,4 @@
+#include <cstring>
 #include <cmath>
 #include "world/CWorldScene.hpp"
 #include "CWorldView.hpp"

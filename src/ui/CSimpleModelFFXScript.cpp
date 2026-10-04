@@ -1,3 +1,4 @@
+#include <cstring>
 #include "ui/CSimpleModelFFXScript.hpp"
 #include "ui/CSimpleModelFFX.hpp"
 #include "util/Unimplemented.hpp"
