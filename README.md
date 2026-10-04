@@ -1,63 +1,98 @@
-# Thunderbrew
+# Northrend
 
-[![Push](https://github.com/thunderbrewhq/thunderbrew/actions/workflows/push.yml/badge.svg)](https://github.com/thunderbrewhq/thunderbrew/actions/workflows/push.yml)
+[![Push](https://github.com/The-Deichlers/Northrend-Client/actions/workflows/push.yml/badge.svg?branch=northrend)](https://github.com/The-Deichlers/Northrend-Client/actions/workflows/push.yml)
 
-Welcome to Thunderbrew, a fork of [Whoa](https://github.com/whoahq/whoa), an unofficial open source implementation of the World of Warcraft 3.3.5a (build 12340) game client in C++11.
+**Northrend** is the canonical open-source World of Warcraft 3.3.5a (build 12340) client project for The-Deichlers ecosystem.
 
-## Supported Platforms
+This repository is derived from [SatyPardus/wotlk-rebuild](https://github.com/SatyPardus/wotlk-rebuild), whose Thunderbrew development branch significantly advanced the original [Whoa](https://github.com/whoahq/whoa) client reimplementation. We preserve that history and attribution while developing Northrend as our own long-term client.
 
-Currently, Windows 10+, macOS 10.14+ (including recent versions of macOS on M1 and M2 processors), and Ubuntu 22.04 are supported.
+> Northrend is an unofficial community project. It is not affiliated with, endorsed by, or distributed by Blizzard Entertainment.
 
-## Building
+## Project status
 
-On Ubuntu, the following packages are required to build Thunderbrew:
+Northrend is under active development. The inherited codebase already includes realm authentication and character enumeration work, world loading, object management, player and unit systems, camera controls and collision, movement work, in-game UI loading, model rendering, and other substantial client functionality.
+
+Our immediate target is not a cosmetic fork. It is a reproducible, testable client that can connect to our AzerothCore environment and progress toward normal 3.3.5a gameplay.
+
+## Canonical branch
+
+Development happens on `northrend`.
+
+The imported `development` branch remains an upstream reference point. We will periodically evaluate and selectively integrate useful work from `SatyPardus/wotlk-rebuild:development` and `whoahq/whoa:master`.
+
+See [docs/UPSTREAM.md](./docs/UPSTREAM.md) for the synchronization policy.
+
+## Roadmap
+
+The working roadmap is in [docs/ROADMAP.md](./docs/ROADMAP.md).
+
+The first major goal is a verified end-to-end session against our AzerothCore test environment:
+
+```
+launch -> authenticate -> realm -> character select -> enter world
+-> render player/world -> move -> interact -> play
+```
+
+## Supported platforms
+
+The inherited codebase targets Windows 10+, macOS 10.14+ including Apple Silicon, and Ubuntu 22.04+.
+
+Apple Silicon is our primary hands-on development target, but cross-platform compatibility should be preserved.
+
+## Building with CMake
+
+On Ubuntu:
 
 ```bash
 sudo apt install -y libglx-dev libxext-dev libopengl-dev libglvnd-dev
 ```
 
-To build, ensure you have installed a recent version of CMake and an appropriate C++ build environment, and run the following from the `whoa` directory:
+Then:
 
-```
-mkdir build && cd build
+```bash
+mkdir build
+cd build
 cmake ..
-make install
+cmake --build . --config Release
+cmake --install .
 ```
 
-Assuming all went well, you should see a `dist/bin` directory appear in the `build` directory. The `dist/bin` directory will contain a `Whoa` executable.
+The installed client executable is named `Northrend`.
 
 ## Running
 
-The data directory must either be a fully extracted MPQ archive set for World of Warcraft 3.3.5a (build 12340), or a directory that contains a `Data` subdirectory with 3.3.5a MPQ archives. 
+Northrend requires legitimate World of Warcraft 3.3.5a (build 12340) game data.
 
-Thunderbrew will attempt change its working directory at startup to the directory that contains the Whoa binary. You can either move your `Whoa` binary to the same directory that contains `Data/` and `WTF/`, launching it from there, or you can supply a different directory with the `-datadir \path\to\game_dir` command line switch. Note that the `-datadir` parameter must be specified with backslashes (\\), even on MacOS and Linux.
+The data directory can be either a fully extracted MPQ archive set or a directory containing the original `Data` directory and MPQ archives. The client can be launched from the game-data directory or pointed at another directory with:
 
-Assuming all goes well, you should be greeted by the login screen, complete with its flying dragon animation loop.
+```
+-datadir \path\to\game_dir
+```
 
-Whoa is very much a work-in-progress: it does not fully connect to a realm server, does not play back sound or music, and does not support customizing settings. These things will be supported over time.
+The inherited path parser currently expects backslashes for this option, including on macOS and Linux.
 
-![Whoa in action](./docs/img/login.png)
+## Development principles
 
-## Contributing
+Northrend keeps the reverse-engineering fidelity requirements inherited from Whoa/Thunderbrew. Where behavior matters, implementations should target the original 3.3.5a build 12340 client rather than merely approximating behavior that happens to work against one server implementation.
 
-Please follow the guidelines contained in [CONTRIBUTING.md](./CONTRIBUTING.md) when making contributions.
+At the same time, Northrend is developed against a real AzerothCore test environment. Changes that affect client/server behavior should be proven on the test server before they are considered stable.
 
-## FAQ
+Low-level inherited identifiers such as `WHOA_*` compile-time macros are intentionally retained for now. Renaming internal compatibility identifiers provides little value and creates unnecessary merge conflicts with upstream.
 
-**Why?**
+See [CONTRIBUTING.md](./CONTRIBUTING.md) before making implementation changes.
 
-It's fascinating to explore the development practices used to build a modern major video game.
+## Lineage and attribution
 
-**Why 3.3.5a?**
+Northrend builds on work from:
 
-The game and its libraries have become significantly more complex in the intervening 10+ years. By picking 3.3.5a, it's possible to imagine this implementation will eventually be complete.
+- [SatyPardus/wotlk-rebuild](https://github.com/SatyPardus/wotlk-rebuild) / Thunderbrew
+- [whoahq/whoa](https://github.com/whoahq/whoa)
+- their contributors and supporting libraries
 
-**Can I use this in my own development projects?**
-
-It's probably a bad idea. The original game is closed source, and this project is in no way official.
+Git history is intentionally preserved.
 
 ## Legal
 
-This project is released into the public domain.
+The source code in this repository retains its inherited public-domain licensing terms; see [LICENSE](./LICENSE).
 
-World of Warcraft: Wrath of the Lich King ©2008 Blizzard Entertainment, Inc. All rights reserved. Wrath of the Lich King is a trademark, and World of Warcraft, Warcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc. in the U.S. and/or other countries.
+World of Warcraft: Wrath of the Lich King ©2008 Blizzard Entertainment, Inc. All rights reserved. Wrath of the Lich King is a trademark, and World of Warcraft, Warcraft, and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc. in the U.S. and/or other countries.
