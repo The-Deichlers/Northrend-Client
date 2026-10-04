@@ -25,17 +25,17 @@ BEGIN
 BLOCK "000004B0"
 BEGIN
 #ifdef WHOA_APP_DEBUG
-VALUE "FileDescription", L"Whoa (Debug)"
+VALUE "FileDescription", L"Northrend (Debug)"
 #else
-VALUE "FileDescription", L"Whoa (Release)"
+VALUE "FileDescription", L"Northrend (Release)"
 #endif
-VALUE "CompanyName", L"Blizzard Entertainment"
+VALUE "CompanyName", L"The Deichlers"
 VALUE "FileVersion", L"3.3.5.12340"
-VALUE "InternalName", L"World of Warcraft"
+VALUE "InternalName", L"Northrend"
 VALUE "LegalCopyright", L"Copyright \xA9 2004"
 VALUE "LegalTrademarks", L""
-VALUE "OriginalFilename", L"Whoa.exe"
-VALUE "ProductName", L"World of Warcraft"
+VALUE "OriginalFilename", L"Northrend.exe"
+VALUE "ProductName", L"Northrend"
 VALUE "ProductVersion", L"Version 3.3"
 END
 END
