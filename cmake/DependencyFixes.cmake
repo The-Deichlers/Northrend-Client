@@ -34,3 +34,13 @@ northrend_correct_source(BcTest lib/bc/test/Debug.cpp
 northrend_correct_source(CommonTest lib/common/test/DataStore.cpp
     "SStrCmp(readVal, \"foo\", STORM_MAX_STR)"
     "SStrCmp(readVal, \"fo\", STORM_MAX_STR)")
+
+# GCC does not obtain memset through the unrelated transitive headers.
+northrend_correct_source(common lib/common/common/memory/CDataAllocator.cpp
+    "#include <algorithm>" "#include <algorithm>\n#include <cstring>")
+
+# Fatal functions promise not to return. Preserve platform error presentation,
+# then provide a terminal diagnostic and terminate if that handler returns.
+northrend_correct_source(storm lib/squall/storm/error/Error.cpp
+    "    SErrDisplayError(STORM_ERROR_APPLICATION_FATAL, s_appFatInfo.filename, s_appFatInfo.linenumber, buffer, 0, 1, 0);"
+    "    SErrDisplayError(STORM_ERROR_APPLICATION_FATAL, s_appFatInfo.filename, s_appFatInfo.linenumber, buffer, 0, 1, 0);\n    std::fprintf(stderr, \"Fatal initialization error: %s\\n\", buffer);\n    std::abort();")
