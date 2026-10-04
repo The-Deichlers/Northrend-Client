@@ -44,3 +44,19 @@ northrend_correct_source(common lib/common/common/memory/CDataAllocator.cpp
 northrend_correct_source(storm lib/squall/storm/error/Error.cpp
     "    SErrDisplayError(STORM_ERROR_APPLICATION_FATAL, s_appFatInfo.filename, s_appFatInfo.linenumber, buffer, 0, 1, 0);"
     "    SErrDisplayError(STORM_ERROR_APPLICATION_FATAL, s_appFatInfo.filename, s_appFatInfo.linenumber, buffer, 0, 1, 0);\n    std::fprintf(stderr, \"Fatal initialization error: %s\\n\", buffer);\n    std::abort();")
+
+# C++ destroys members automatically after the destructor body. An explicit
+# member destructor here causes a second destruction and a GCC Release double free.
+set(sorted_array_original "${CMAKE_SOURCE_DIR}/lib/common/common/array/CSimpleSortedArray.hpp")
+file(READ "${sorted_array_original}" sorted_array_contents)
+string(FIND "${sorted_array_contents}" "    m_array.~TSGrowableArray();" sorted_array_match)
+if (sorted_array_match EQUAL -1)
+    message(FATAL_ERROR "Sorted-array destructor correction no longer applies")
+endif ()
+string(REPLACE "    m_array.~TSGrowableArray();" "    // m_array is destroyed automatically after this body." sorted_array_contents "${sorted_array_contents}")
+set(sorted_array_include "${CMAKE_BINARY_DIR}/dependency-fixes/lib/common")
+file(MAKE_DIRECTORY "${sorted_array_include}/common/array")
+file(WRITE "${sorted_array_include}/common/array/CSimpleSortedArray.hpp" "${sorted_array_contents}")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${sorted_array_original}")
+target_include_directories(common BEFORE PUBLIC "${sorted_array_include}")
+target_include_directories(CommonTest BEFORE PRIVATE "${sorted_array_include}")
