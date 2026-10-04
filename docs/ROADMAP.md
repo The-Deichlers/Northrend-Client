@@ -6,6 +6,29 @@ Build Northrend into a usable, maintainable, modern client for World of Warcraft
 
 This is a spare-time project, so work should favor small, testable milestones over broad rewrites.
 
+## First-Class Client Standard
+
+Northrend is not intended to be a proof of concept, compatibility demo, or "good enough" hobby client. The acceptance bar is a first-class desktop game client.
+
+That means every subsystem we touch should be held to production-quality expectations:
+
+- **Correctness:** behavior should match World of Warcraft 3.3.5a build 12340 where fidelity matters, while interoperating cleanly with modern AzerothCore.
+- **Stability:** crashes, hangs, undefined behavior, corrupt state, silent failures, and unrecoverable networking states are release-blocking defects.
+- **Performance:** rendering, loading, input, networking, animation, object updates, memory use, and startup should be profiled and optimized rather than merely made functional.
+- **Responsiveness:** input, camera movement, UI interaction, loading transitions, and world updates should feel immediate and predictable.
+- **Platform quality:** macOS, Windows, and Linux should behave like native first-class applications on their respective platforms, including windowing, input, filesystem behavior, logging, packaging, and process lifecycle.
+- **Apple Silicon:** arm64 macOS is a primary development target, not an afterthought.
+- **Networking:** authentication, realm selection, world entry, movement, reconnects, teleports, logout, and error handling should be robust under normal and abnormal server conditions.
+- **Diagnostics:** important failures should be observable through useful logs and assertions; debugging should not require guessing.
+- **Maintainability:** new work should be structured, documented, testable, and understandable enough that future upstream integration remains practical.
+- **Testing:** important protocol, parsing, state-machine, movement, and object-system behavior should gain automated tests where feasible, plus real integration validation against `northrend-test`.
+- **User experience:** no developer-only shortcuts, hard-coded selections, dead controls, placeholder flows, broken settings, or obviously unfinished behavior may be treated as complete.
+- **Polish:** warnings, error messages, startup behavior, configuration, settings persistence, display handling, audio, input, and shutdown all count. A client is only first-class when the unglamorous paths are first-class too.
+
+The project does **not** need a custom art-production effort. Northrend should use legitimate 3.3.5a game data and assets as intended. Our differentiation is engineering quality, compatibility, maintainability, and modern client behavior—not replacement artwork.
+
+A milestone is not complete because a feature can be demonstrated once. It is complete when the feature is reliable, repeatable, testable, documented, and does not degrade the rest of the client.
+
 ## Milestone 0 — Reproducible build
 
 Goal: any contributor can produce a known-good Northrend binary from the repository.
