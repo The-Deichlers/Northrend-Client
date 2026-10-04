@@ -1,3 +1,4 @@
+#include <cmath>
 #include "util/C3Spline.hpp"
 #include <tempest/vector/C3Vector.hpp>
 
