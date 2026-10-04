@@ -39,7 +39,23 @@ if (WHOA_SYSTEM_MAC)
             "-framework IOKit"
     )
 
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/mac/MainMenu.nib DESTINATION "bin")
+    find_program(IBTOOL_EXECUTABLE ibtool)
+    if (NOT IBTOOL_EXECUTABLE)
+        message(FATAL_ERROR "ibtool is required to compile Northrend menu resources; install Xcode")
+    endif ()
+    set(NORTHREND_MENU_NIB "${CMAKE_CURRENT_BINARY_DIR}/MainMenu.nib")
+    add_custom_command(OUTPUT "${NORTHREND_MENU_NIB}"
+        COMMAND "${IBTOOL_EXECUTABLE}" --compile "${NORTHREND_MENU_NIB}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/mac/MainMenu.xib"
+            --minimum-deployment-target "${CMAKE_OSX_DEPLOYMENT_TARGET}"
+        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/mac/MainMenu.xib"
+        VERBATIM)
+    add_custom_target(northrend_menu DEPENDS "${NORTHREND_MENU_NIB}")
+    add_dependencies(Northrend northrend_menu)
+    add_custom_command(TARGET Northrend POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${NORTHREND_MENU_NIB}"
+            "$<TARGET_FILE_DIR:Northrend>/MainMenu.nib")
+    install(DIRECTORY "${NORTHREND_MENU_NIB}" DESTINATION "bin")
 endif ()
 
 if (WHOA_SYSTEM_LINUX)
