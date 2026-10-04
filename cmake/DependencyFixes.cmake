@@ -78,3 +78,9 @@ file(WRITE "${fixed_array_include}/storm/array/TSFixedArray.hpp" "${fixed_array_
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${fixed_array_original}")
 target_include_directories(storm BEFORE PUBLIC "${fixed_array_include}")
 target_include_directories(StormTest BEFORE PRIVATE "${fixed_array_include}")
+
+# Zero has no binary bytes and therefore no backing buffer. Even a zero-byte
+# memcpy requires nonnull pointers under the standard library's contract.
+northrend_correct_source(storm lib/squall/storm/Big.cpp
+    "    memcpy(data, output.Ptr(), n);"
+    "    if (n) {\n        memcpy(data, output.Ptr(), n);\n    }")
