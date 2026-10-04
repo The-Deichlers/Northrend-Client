@@ -10,6 +10,10 @@ on:
   pull_request:
     branches: [northrend]
 
+concurrency:
+  group: northrend-build-${{ github.event.pull_request.head.ref || github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: ${{ matrix.config.name }} (${{ matrix.build_type }})
