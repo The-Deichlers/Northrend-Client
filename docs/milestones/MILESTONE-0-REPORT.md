@@ -2,7 +2,8 @@
 
 Status: **incomplete**. Native builds and asset-free startup validation pass.
 A successful launch with legitimate 3.3.5a build 12340 assets has not been tested:
-the developer is obtaining the Windows data set. CI validation remains in progress.
+the developer is obtaining the Windows data set. Debug and Release CI pass on
+macOS, Linux and Windows at code revision c522b7b5.
 Do not merge or mark this milestone complete until these requirements pass.
 
 ## Machine and toolchain
@@ -42,8 +43,13 @@ Debug from an empty build directory. Release also used an empty build directory;
 the app interruption terminated that build at 72%, and it subsequently resumed
 and passed. No previously generated objects from the primary checkout were used.
 The fresh clone verified source revisions f22d9386 (initial Debug) and
-99a88fad (Release), with Debug also repeated at d1c7a78e. Subsequent C3Spline's
-`<cmath>` include was validated in the primary checkout.
+99a88fad (Release), with Debug also repeated at d1c7a78e. A further clean Debug
+build at bfcc4a5f and an incremental Debug run at 38bd42aa both passed 9/9.
+Primary-checkout Debug, Release and ASan/UBSan also passed 9/9 at 38bd42aa.
+After both dependency lifetime fixes, a fresh clean Debug build in the separate
+network clone passed 9/9 at 5d559a72. Primary Debug, Release and ASan/UBSan
+also passed 9/9 at that source revision. All three primary configurations
+passed 9/9 again at 93e22301 after guarding the zero-byte big-integer copy.
 
 ```sh
 git clone --branch milestone-0-reproducible-build --recurse-submodules \
@@ -183,27 +189,56 @@ established by a successful compile.
 
 ## CI
 
-The workflow covers northrend pushes and PRs to northrend and attempts Debug and
-Release on macOS, Linux and Windows. All five test binaries and four startup
+The consolidated workflow covers northrend pushes and PRs to northrend and
+attempts Debug and Release on macOS, Linux and Windows. The inherited duplicate
+PR workflow lacked Linux dependencies; its checks are replaced by this broader
+shared workflow. Concurrency cancels superseded runs without hiding failures. All five test binaries and four startup
 checks run through CTest; failures are not hidden or allowed to fail silently.
 
-Initial Linux builds found Common's missing `<cstring>` and C3Spline's missing
-`<cmath>`; both were corrected. The current platform checks are still running.
-Latest code run: https://github.com/The-Deichlers/Northrend-Client/actions
+Linux builds exposed Common's missing `<cstring>`, C3Spline's missing `<cmath>`,
+a case-sensitive `Zlib.hpp`/`ZLib.hpp` include mismatch, and further direct
+math/C-string/stdio calls lacking their own standard headers; all were corrected.
+GCC also required `std::isnan` qualification. At 38bd42aa, Linux Debug and
+Release compiled/linked but CommonTest aborted: CSimpleSortedArray explicitly
+destroyed its array member, which C++ then destroyed again. Revision e1fa76b4
+removes the explicit destruction in a generated header shared by the client and
+tests. The existing array suite passes locally (3 cases, 19 assertions); final
+Linux Release passed 9/9 at e1fa76b4, while Linux
+Debug UBSan found TSFixedArray::Clear calling Constructor after its explicit
+destructor. Revision 5d559a72 releases elements/storage without destroying the
+array object. The existing Storm array suite passes locally (8 cases, 27
+assertions). Full Debug, Release and ASan/UBSan CTest pass 9/9 with this
+correction. A clean local Release build at e1fa76b4 also passed 9/9. The next
+Linux Debug run exposed a zero-byte memcpy from a null big-integer output buffer;
+93e22301 skips that empty copy. The following Linux Debug run found an
+out-of-bounds flattened access across rows of a 20-by-10 decimal digit table
+in SStrToFloat. Revision c522b7b5 uses the actual row and digit indices,
+preserving its numeric values. All three local configurations passed 9/9 again
+at c522b7b5; the hosted run also passed all six configurations.
+Validated code revision: `c522b7b50db8f386b9d088a04ed09b416b459bcb`.
+[Run 37238585712](https://github.com/The-Deichlers/Northrend-Client/actions/runs/37238585712)
+completed successfully; all six jobs ran and passed all nine CTest checks.
 
-Hosted macOS Debug passed 9/9 tests on revision 99a88fad in run 37236015195.
-Its log explicitly reports image `macos-26-arm64`, `RUNNER_ARCH=ARM64` and
-`uname -m=arm64`. Thus this observed hosted build is also native ARM64;
-local Apple M2 acceptance remains separately recorded. Other final job results
-are pending.
+| Hosted platform | Debug | Release |
+| --- | --- | --- |
+| macOS, Clang | pass, 9/9 | pass, 9/9 |
+| Ubuntu, GCC | pass, 9/9 | pass, 9/9 |
+| Windows, MSVC | pass, 9/9 | pass, 9/9 |
+
+An earlier hosted macOS Debug log (99a88fad, run 37236015195) explicitly reports
+image `macos-26-arm64`, `RUNNER_ARCH=ARM64` and `uname -m=arm64`.
+Hosted macOS is therefore observed on native ARM64; local Apple M2 acceptance
+is independently recorded above. Windows Debug logs report X64. No hosted
+full-game-data launch is attempted. Documentation-only commits after the tested
+code revision may trigger new runs; the linked run records the code validation.
 
 ## Remaining blockers and next steps
 
 1. Supply complete legitimate 3.3.5a build 12340 data outside the repository.
    Validate both supported launch layouts, actual asset loading, graphical
    renderer/menu/process identity and fatal initialization diagnostics.
-2. Finish CI, fix reasonably scoped platform failures, and record final statuses.
-   Do not merge failing required checks.
+2. Keep the PR in draft until full-data acceptance is satisfied. CI now passes
+   all six configurations; do not merge if subsequent required checks fail.
 3. Upstream the small generated dependency corrections into maintained dependency
    commits; strengthen bounds/asset-parser tests before expanding integration.
 4. Keep Milestone 1 limited to northrend-test after this baseline is accepted.

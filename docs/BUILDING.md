@@ -108,7 +108,9 @@ Consult the report for observed sanitizer results and inherited warnings.
 
 `cmake/DependencyFixes.cmake` applies small verified corrections to generated
 source copies under the build directory: Storm log-directory creation, fatal
-function termination, a Common GCC header, and two inherited test defects.
+function termination, a Common GCC header, sorted-array member double destruction,
+fixed-array Clear lifetime preservation, zero-byte big-integer buffer copying,
+bounded decimal digit-table indexing, and two inherited test defects.
 It checks the original text before applying each correction and leaves pinned
 submodule working trees untouched. These corrections should eventually move
 into maintained dependency commits. CTest registers all five inherited test
