@@ -1,3 +1,4 @@
+#include <cmath>
 #include "clientobject/CGObject_C.hpp"
 #include "clientobject/ObjectMgrClient.hpp"
 #include <world/CWorldScene.hpp>

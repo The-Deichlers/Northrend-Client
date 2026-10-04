@@ -1,3 +1,4 @@
+#include <cmath>
 #include "clientobject/MovementShared.hpp"
 #include <common/time/Time.hpp>
 #include <util/Byte.hpp>

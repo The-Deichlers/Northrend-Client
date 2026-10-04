@@ -1,3 +1,4 @@
+#include <cmath>
 #include "clientobject/Movement_C.hpp"
 #include "clientobject/Movement.hpp"
 #include "clientobject/Unit_C.hpp"

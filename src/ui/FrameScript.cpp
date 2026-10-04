@@ -1,3 +1,4 @@
+#include <cmath>
 #include "ui/FrameScript.hpp"
 #include "ui/FrameScriptInternal.hpp"
 #include "ui/FrameScript_Object.hpp"

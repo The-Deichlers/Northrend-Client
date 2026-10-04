@@ -1,3 +1,4 @@
+#include <cmath>
 #include "CSimpleCamera.hpp"
 
 #include <tempest/rect/CRect.hpp>

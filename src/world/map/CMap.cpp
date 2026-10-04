@@ -1,3 +1,4 @@
+#include <cmath>
 #include <cfloat>
 #include "world/map/CMap.hpp"
 #include "world/map/CMapObj.hpp"

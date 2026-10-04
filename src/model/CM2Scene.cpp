@@ -1,3 +1,4 @@
+#include <cmath>
 #include "model/CM2Scene.hpp"
 #include "gx/Shader.hpp"
 #include "gx/Transform.hpp"

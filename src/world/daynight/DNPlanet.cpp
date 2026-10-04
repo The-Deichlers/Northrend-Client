@@ -1,3 +1,4 @@
+#include <cmath>
 #include "world/daynight/DNPlanet.hpp"
 #include "world/daynight/DNInfo.hpp"
 #include "world/daynight/DayNight.hpp"

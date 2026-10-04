@@ -1,3 +1,4 @@
+#include <cmath>
 #include "model/CM2Lighting.hpp"
 #include "model/CM2Light.hpp"
 #include "model/CM2Scene.hpp"

@@ -1,3 +1,4 @@
+#include <cmath>
 #include "clientobject/Unit_C.hpp"
 
 #include "db/Db.hpp"

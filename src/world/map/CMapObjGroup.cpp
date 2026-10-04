@@ -1,3 +1,4 @@
+#include <cmath>
 #include "world/map/CMapObjGroup.hpp"
 #include "async/AsyncFile.hpp"
 #include "world/map/CMapObj.hpp"

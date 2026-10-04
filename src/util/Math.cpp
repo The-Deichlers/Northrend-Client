@@ -1,3 +1,4 @@
+#include <cmath>
 #include "util/Math.hpp"
 #include "tempest/Math.hpp"
 
