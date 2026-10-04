@@ -168,7 +168,7 @@ void CMovement_C::ExecuteMovement(uint32_t time, uint32_t prevTime) {
         delta = 250;
     } else if (delta == 0) {
         this->m_unit->OnMoveUpdate(time, 0, 0);
-        if (isnan(this->m_position.x) || isnan(this->m_position.y) || isnan(this->m_position.z)) {
+        if (std::isnan(this->m_position.x) || std::isnan(this->m_position.y) || std::isnan(this->m_position.z)) {
             //ConsolePrintf("Mover at invalid position");
         }
 
@@ -228,7 +228,7 @@ void CMovement_C::ExecuteMovement(uint32_t time, uint32_t prevTime) {
     }
 
     this->m_unit->OnMoveUpdate(time, 0, 0);
-    if (isnan(this->m_position.x) || isnan(this->m_position.y) || isnan(this->m_position.z)) {
+    if (std::isnan(this->m_position.x) || std::isnan(this->m_position.y) || std::isnan(this->m_position.z)) {
         //ConsolePrintf("Mover at invalid position");
     }
 
