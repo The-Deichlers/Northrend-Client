@@ -17,7 +17,9 @@ TEST_CASE("GLL capabilities reflect hardware and implemented backend limits", "[
         CHECK(caps.m_numTmus == 16);
         CHECK(caps.m_numStreams == 1);
         CHECK(caps.m_texMaxSize[GxTex_2d] == 16384);
-        CHECK(caps.m_texMaxSize[GxTex_CubeMap] == 8192);
+        CHECK(caps.m_texMaxSize[GxTex_CubeMap] == 0);
+        CHECK(caps.m_texTarget[GxTex_CubeMap] == 0);
+        CHECK(caps.m_texTarget[GxTex_Rectangle] == 0);
         CHECK(caps.m_maxIndex == 65535);
         CHECK(caps.m_texFilterAnisotropic == 1);
     }
