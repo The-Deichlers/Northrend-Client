@@ -1,3 +1,4 @@
+#include <cstring>
 #include "world/map/CMapObjDef.hpp"
 #include <world/CWorldMath.hpp>
 

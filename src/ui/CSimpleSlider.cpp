@@ -1,3 +1,4 @@
+#include <cmath>
 #include "ui/CSimpleSlider.hpp"
 #include "math/Utils.hpp"
 #include "ui/CSimpleSliderScript.hpp"

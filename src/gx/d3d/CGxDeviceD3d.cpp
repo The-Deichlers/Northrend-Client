@@ -1,3 +1,4 @@
+#include <cstring>
 #include "gx/d3d/CGxDeviceD3d.hpp"
 #include "gx/Blit.hpp"
 #include "gx/CGxBatch.hpp"

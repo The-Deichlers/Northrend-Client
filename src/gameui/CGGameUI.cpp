@@ -1,3 +1,4 @@
+#include <cstring>
 #include "gameui/CGGameUI.hpp"
 
 #include <common/MD5.hpp>

@@ -16,8 +16,8 @@ class CGxCaps {
         uint32_t m_maxIndex = 0;
         int32_t m_generateMipMaps = 0;
         int32_t m_texFmt[GxTexFormats_Last] = { 0 };
-        int32_t m_texTarget[GxTexTargets_Last];
-        uint32_t m_texMaxSize[GxTexTargets_Last];
+        int32_t m_texTarget[GxTexTargets_Last] = {};
+        uint32_t m_texMaxSize[GxTexTargets_Last] = {};
         int32_t m_shaderTargets[GxShTargets_Last] = { 0 };
         int32_t m_texFilterTrilinear = 0;
         int32_t m_texFilterAnisotropic = 0;

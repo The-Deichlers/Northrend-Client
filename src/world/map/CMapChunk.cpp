@@ -1,3 +1,4 @@
+#include <cmath>
 #include "world/map/CMapChunk.hpp"
 #include "world/map/CMap.hpp"
 #include <os/Debug.hpp>

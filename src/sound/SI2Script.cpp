@@ -1,3 +1,4 @@
+#include <cstring>
 #include "sound/SI2.hpp"
 #include "ui/Types.hpp"
 #include "util/Lua.hpp"

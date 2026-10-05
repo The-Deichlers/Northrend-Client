@@ -16,6 +16,7 @@
 #include "gx/gll/GLVertexArray.h"
 #include "gx/gll/GLWorker.h"
 #include <cstdint>
+#include "gx/GllCapabilities.hpp"
 #include <list>
 #include <string>
 #include <vector>
@@ -39,11 +40,14 @@ class GLDevice {
 
         struct RendererInfo {
             uint8_t init = 0;
-            uint32_t vendor_id;
-            uint32_t renderer_id;
-            uint32_t max_color_attachments;
-            uint32_t unk36;     // max clip planes
-            uint32_t unk100;
+            GllHardwareCaps hardware;
+            std::string vendor, renderer, version;
+            std::string queryError = "OpenGL capability initialization has not run";
+            uint32_t vendor_id = 0;
+            uint32_t renderer_id = 0;
+            uint32_t max_color_attachments = 1;
+            uint32_t unk36 = 0;     // max clip planes
+            uint32_t unk100 = 0;
         };
 
         // Static variables

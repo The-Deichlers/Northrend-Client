@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include "client/Patch.hpp"
 
 #include <storm/String.hpp>

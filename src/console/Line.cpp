@@ -1,3 +1,4 @@
+#include <cstring>
 
 #include "console/Console.hpp"
 #include "console/Highlight.hpp"

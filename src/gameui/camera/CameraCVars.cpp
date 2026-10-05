@@ -1,3 +1,4 @@
+#include <cmath>
 #include "gameui/camera/CameraCVars.hpp"
 #include "util/Unimplemented.hpp"
 #include <storm/String.hpp>

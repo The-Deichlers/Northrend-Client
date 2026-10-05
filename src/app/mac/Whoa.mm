@@ -9,6 +9,7 @@ int32_t main(int32_t argc, char* argv[]) {
     // TODO
     // MacClient::SetupCommandLine(argc, argv, v10);
 
+    [[NSProcessInfo processInfo] setProcessName:@"Northrend"];
     OsSetCommandLine(argc, argv);
 
     if (MacClient::IsUsingGLLayer()) {
@@ -37,7 +38,7 @@ int32_t main(int32_t argc, char* argv[]) {
 
         [NSApp mainMenu];
 
-        CommonMain();
+        return CommonMain();
     }
 
     return 0;

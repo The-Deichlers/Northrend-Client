@@ -1,5 +1,9 @@
 #include "client/CmdLine.hpp"
 #include <storm/Command.hpp>
+#include <storm/String.hpp>
+#include <bc/os/CommandLine.hpp>
+#include <cstdio>
+#include <cstring>
 
 int32_t CmdLineProcess() {
     // engine-specific flags.
@@ -26,10 +30,31 @@ int32_t CmdLineProcess() {
     SCmdRegisterArgList(s_argList, sizeof(s_argList) / sizeof(ARGLIST));
 
     // parse command line
-    return SCmdProcessCommandLine(0, 0);
+    // The inherited parser does not reject a trailing string option.
+    const char* command = OsGetCommandLine();
+    char token[260] = {};
+    bool needsValue = false;
+    SStrTokenize(&command, token, sizeof(token), " \t\r\n", nullptr);
+    while (*command) {
+        SStrTokenize(&command, token, sizeof(token), " \t\r\n", nullptr);
+        if (needsValue && (!*token || *token == '-')) {
+            std::fprintf(stderr, "Northrend: -datadir requires a directory argument.\n");
+            return 0;
+        }
+        needsValue = std::strcmp(token, "-datadir") == 0;
+    }
+    if (needsValue) {
+        std::fprintf(stderr, "Northrend: -datadir requires a directory argument.\n");
+        return 0;
+    }
+    if (!SCmdProcessCommandLine(nullptr, nullptr)) {
+        std::fprintf(stderr, "Northrend: invalid command line; use -datadir <game-directory>.\n");
+        return 0;
+    }
+    return 1;
 }
 
-void ProcessCommandLine() {
+int32_t ProcessCommandLine() {
     static ARGLIST s_wowArgList[] = {
         { 0x0,                       CMD_RES_800x600,   "800x600",    nullptr },
         { 0x0,                       CMD_RES_1024x768,  "1024x768",   nullptr },
@@ -53,7 +78,7 @@ void ProcessCommandLine() {
     // Load wow-specific launch flags
     SCmdRegisterArgList(s_wowArgList, sizeof(s_wowArgList) / sizeof(ARGLIST));
 
-    CmdLineProcess();
+    return CmdLineProcess();
 }
 
 const char* CmdLineGetString(CMDOPT opt) {

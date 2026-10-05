@@ -1,3 +1,5 @@
+#include <cstring>
+#include <cmath>
 #include "model/CM2Light.hpp"
 #include "model/CM2Scene.hpp"
 #include "gx/Device.hpp"

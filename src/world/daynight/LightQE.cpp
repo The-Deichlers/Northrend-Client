@@ -1,3 +1,4 @@
+#include <cmath>
 #include "world/daynight/LightQE.hpp"
 #include "db/rec/LightRec.hpp"
 #include "tempest/Math.hpp"

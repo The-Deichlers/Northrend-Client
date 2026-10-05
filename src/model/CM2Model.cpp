@@ -1,3 +1,5 @@
+#include <cstdlib>
+#include <cstring>
 #include "model/CM2Model.hpp"
 #include "async/AsyncFileRead.hpp"
 #include "math/Types.hpp"

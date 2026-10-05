@@ -1,3 +1,4 @@
+#include <cmath>
 #include "gameui/CGInputControl.hpp"
 #include "console/DebugScreen.hpp"
 #include <common/time/Time.hpp>

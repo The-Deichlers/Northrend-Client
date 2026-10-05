@@ -1,3 +1,5 @@
+#include <cstring>
+#include <cmath>
 #include "clientobject/Unit_C.hpp"
 
 #include "db/Db.hpp"
@@ -2591,7 +2593,8 @@ void CGUnit_C::PreAnimate(CGWorldFrame* worldFrame) {
                 }
 
                 this->m_worldModel->SetBoneFlags(4, 128, 128);
-                this->m_worldModel->SetBoneProceduralTransform(4, &C44Matrix::Rotation(copysignf(headAngle, residual), C3Vector(0.0f, 0.0f, 1.0f), true));
+                C44Matrix proceduralTransform = C44Matrix::Rotation(copysignf(headAngle, residual), C3Vector(0.0f, 0.0f, 1.0f), true);
+                this->m_worldModel->SetBoneProceduralTransform(4, &proceduralTransform);
 
                 absResidual -= headAngle;
             }
@@ -2602,7 +2605,8 @@ void CGUnit_C::PreAnimate(CGWorldFrame* worldFrame) {
                 }
 
                 this->m_worldModel->SetBoneFlags(6, 128, 128);
-                this->m_worldModel->SetBoneProceduralTransform(6, &C44Matrix::Rotation(copysignf(absResidual, residual), C3Vector(0.0f, 0.0f, 1.0f), true));
+                C44Matrix proceduralTransform = C44Matrix::Rotation(copysignf(absResidual, residual), C3Vector(0.0f, 0.0f, 1.0f), true);
+                this->m_worldModel->SetBoneProceduralTransform(6, &proceduralTransform);
             }
         } else {
             this->m_worldModel->SetBoneFlags(4, 0, 128);
@@ -2611,7 +2615,8 @@ void CGUnit_C::PreAnimate(CGWorldFrame* worldFrame) {
 
         if (mirrorFlag) {
             this->m_worldModel->SetBoneFlags(4, 128, 128);
-            this->m_worldModel->SetBoneProceduralTransform(4, &C44Matrix::Rotation(-this->GetPitch(), C3Vector(0.0f, 1.0f, 0.0f), true));
+            C44Matrix proceduralTransform = C44Matrix::Rotation(-this->GetPitch(), C3Vector(0.0f, 1.0f, 0.0f), true);
+            this->m_worldModel->SetBoneProceduralTransform(4, &proceduralTransform);
         }
 
         //this->RotateWheels();

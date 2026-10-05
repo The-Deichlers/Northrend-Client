@@ -17,9 +17,21 @@ int32_t OsGetDefaultWindowRect(RECT* rect) {
     }
 
     if (!s_defaultWindowRect.right || !s_defaultWindowRect.bottom) {
+#if defined(WHOA_SYSTEM_WIN)
         auto v2 = (HWND)OsGuiGetWindow(0);
         if (!GetClientRect(v2, &s_defaultWindowRect))
             return 0;
+#else
+        if (!GxDevExists()) {
+            return 0;
+        }
+        CRect bounds;
+        GxCapsWindowSize(bounds);
+        s_defaultWindowRect = {
+            static_cast<int32_t>(bounds.minX), static_cast<int32_t>(bounds.minY),
+            static_cast<int32_t>(bounds.maxX), static_cast<int32_t>(bounds.maxY)
+        };
+#endif
     }
     *rect = s_defaultWindowRect;
 

@@ -40,3 +40,17 @@ target_include_directories(WhoaTest
 )
 
 install(TARGETS WhoaTest DESTINATION "bin")
+
+if (BUILD_TESTING)
+    foreach (test_target WhoaTest BcTest StormTest TempestTest CommonTest)
+        add_test(NAME ${test_target} COMMAND ${test_target})
+    endforeach ()
+    foreach (startup_case missing-value invalid-directory unknown-option missing-data)
+        add_test(NAME startup-${startup_case}
+            COMMAND ${CMAKE_COMMAND}
+                -DCLIENT=$<TARGET_FILE:Northrend>
+                -DCASE=${startup_case}
+                -DSCRATCH=${CMAKE_CURRENT_BINARY_DIR}/startup-${startup_case}
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/StartupFailure.cmake)
+    endforeach ()
+endif ()

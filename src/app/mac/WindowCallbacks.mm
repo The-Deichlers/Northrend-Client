@@ -1,3 +1,5 @@
+#include "os/Input.hpp"
+#include "os/Queue.hpp"
 #include "app/mac/WindowCallbacks.h"
 #include "app/mac/MacClient.h"
 #include "event/Input.hpp"
@@ -91,10 +93,6 @@ void MacOnMouseDown(int16_t button, int32_t x, int32_t y) {
     MOUSEBUTTON mouseButton = ConvertButtonNumberToMOUSEBUTTON(effectiveButtonNumber);
 
     if (mouseButton) {
-        if (Input::s_mouseMode == 0) {
-            Input::s_currentMouse = { x, y };
-        }
-
         OsQueuePut(OS_INPUT_MOUSE_DOWN, mouseButton, x, y, 0);
     }
 }
@@ -108,8 +106,6 @@ void MacOnMouseMoved(int32_t x, int32_t y) {
 
         OsQueuePut(OS_INPUT_MOUSE_MOVE_RELATIVE, 0, deltaX, deltaY, 0);
     } else {
-        Input::s_currentMouse = { x, y };
-
         OsQueuePut(OS_INPUT_MOUSE_MOVE, 0, x, y, 0);
     }
 }
@@ -158,20 +154,19 @@ void MacOnMouseUp(int16_t button, int32_t x, int32_t y) {
     MOUSEBUTTON mouseButton = ConvertButtonNumberToMOUSEBUTTON(effectiveButtonNumber);
 
     if (mouseButton) {
-        if (Input::s_mouseMode != 0) {
-            Input::s_currentMouse = { x, y };
-        }
-
         OsQueuePut(OS_INPUT_MOUSE_UP, mouseButton, x, y, 0);
     }
 }
 
 void MacOnResized(int32_t width, int32_t height, bool a3) {
-    if (a3) {
+    if (a3 || width <= 0 || height <= 0) {
         return;
     }
 
     static_cast<CGxDeviceGLL*>(g_theGxDevicePtr)->Resize(width, height);
+
+    // ConvertPosition caches this rectangle; Windows updates it on WM_SIZE.
+    s_defaultWindowRect = {0, 0, width, height};
 
     OsQueuePut(OS_INPUT_SIZE, width, height, 0, 0);
 

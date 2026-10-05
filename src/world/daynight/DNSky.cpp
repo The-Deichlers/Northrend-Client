@@ -1,3 +1,4 @@
+#include <cmath>
 #include "world/daynight/DNSky.hpp"
 #include "gx/Device.hpp"
 #include "gx/Transform.hpp"

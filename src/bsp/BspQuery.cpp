@@ -1,3 +1,4 @@
+#include <cmath>
 #include "bsp/BspQuery.hpp"
 #include "bsp/AaBsp.hpp"
 #include "bsp/CAaBspNodeDigest.hpp"

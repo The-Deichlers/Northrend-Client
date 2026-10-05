@@ -1,3 +1,4 @@
+#include <cstdio>
 #include "gx/shader/CShaderEffectManager.hpp"
 #include "gx/shader/CShaderEffect.hpp"
 #include "util/SFile.hpp"

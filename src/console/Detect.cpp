@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include "console/Detect.hpp"
 #include "db/Db.hpp"
 #include "db/Startup_Strings.hpp"
@@ -10,6 +11,8 @@
 
 #if defined(WHOA_SYSTEM_MAC)
 #include <OpenGL/gl.h>
+#include <OpenGL/OpenGL.h>
+#include <ApplicationServices/ApplicationServices.h>
 #include <sys/sysctl.h>
 #endif
 
@@ -248,12 +251,12 @@ void ConsoleDetectDetectHardware(Hardware& hardware, bool& hwChanged) {
 
 uint32_t FindVRAMSize() {
     CGDirectDisplayID activeDisplays[32];
-    uint32_t displayCount;
-    if (CGGetActiveDisplayList(32, activeDisplays, &displayCount)) {
+    uint32_t displayCount = 0;
+    if (CGGetActiveDisplayList(32, activeDisplays, &displayCount) || displayCount == 0) {
         return 0;
     }
 
-    CGLRendererInfoObj rend;
+    CGLRendererInfoObj rend = nullptr;
     GLint nrend;
     GLint accelerated;
     GLint vram_size;
@@ -271,7 +274,7 @@ uint32_t FindVRAMSize() {
         }
     }
 
-    CGLDestroyRendererInfo(rend);
+    if (rend) CGLDestroyRendererInfo(rend);
     return 0;
 }
 
@@ -285,7 +288,7 @@ void ConsoleDetectDetectHardware(Hardware& hardware, bool& hwChanged) {
         SetVideoIdx(hardware);
     }
 
-    if (!hardware.videoIdx) {
+    if (!hardware.videoID) {
         hardware.videoDevice.vendorID = 0xFFFF;
         if (GxAdapterInfer(hardware.videoDevice.deviceID)) {
             SetVideoIdx(hardware);
@@ -303,7 +306,7 @@ void ConsoleDetectDetectHardware(Hardware& hardware, bool& hwChanged) {
     size_t size32 = sizeof(uint32_t);
     size_t size64 = sizeof(uint64_t);
 
-    uint32_t hw_cputype;
+    uint64_t hw_memsize = 0;
     auto hw_cputype_error = sysctlbyname("hw.cputype", &hw_cputype, &size32, nullptr, 0);
     if (hw_cputype_error) {
         OsOutputDebugString("[Mac sys detect] ! error %d reading hw.cputype\n", hw_cputype_error);
@@ -324,20 +327,18 @@ void ConsoleDetectDetectHardware(Hardware& hardware, bool& hwChanged) {
         OsOutputDebugString("[Mac sys detect] ! error %d reading hw.cpufrequency_max\n", hw_cpufrequency_max_error);
     }
 
-    auto hw_busfrequency_max_error = sysctlbyname("hw.busfrequency_max", hw_busfrequency_max, &size64, nullptr, 0);
+    auto hw_busfrequency_max_error = sysctlbyname("hw.busfrequency_max", &hw_busfrequency_max, &size64, nullptr, 0);
     if (hw_busfrequency_max_error) {
-        OsOutputDebugString("[Mac sys detect] ! error %d reading hw.busfrequency_max\n", iVar6);
+        OsOutputDebugString("[Mac sys detect] ! error %d reading hw.busfrequency_max\n", hw_busfrequency_max_error);
     }
 
     auto hw_l2cachesize_error = sysctlbyname("hw.l2cachesize", &hw_l2cachesize, &size64, nullptr, 0);
     if (hw_l2cachesize_error) {
-        hw_l2cachesize_error = 0;
         OsOutputDebugString("[Mac sys detect] ! error %d reading hw.l2cachesize\n", hw_l2cachesize_error);
     }
     auto hw_l3cachesize_error = sysctlbyname("hw.l3cachesize", &hw_l3cachesize, &size64, nullptr, 0);
     if (hw_l3cachesize_error) {
-        hw_l3cachesize_error = 0;
-        OsOutputDebugString("[Mac sys detect] ! error %d reading hw.l3cachesize\n", iVar8);
+        OsOutputDebugString("[Mac sys detect] ! error %d reading hw.l3cachesize\n", hw_l3cachesize_error);
     }
 
     auto hw_memsize_error = sysctlbyname("hw.memsize", &hw_memsize, &size64, nullptr, 0);
@@ -348,7 +349,7 @@ void ConsoleDetectDetectHardware(Hardware& hardware, bool& hwChanged) {
     auto vram_size = FindVRAMSize();
 
     bool ddr_ram;
-    if (hw_busfrequency_max > 110000000 && (hw_busfrequency_max > 140000000 || h2_l3cachesize > 0xFFFFF && hw_l2cachesize > 0x7FFFF)) {
+    if (hw_busfrequency_max > 110000000 && (hw_busfrequency_max > 140000000 || hw_l3cachesize > 0xFFFFF && hw_l2cachesize > 0x7FFFF)) {
         OsOutputDebugString("[Mac sys detect] - DDR RAM\n");
         ddr_ram = true;
     } else {
@@ -360,7 +361,7 @@ void ConsoleDetectDetectHardware(Hardware& hardware, bool& hwChanged) {
     uint32_t macTier;
 
     if (hw_cpusubtype_error || hw_cputype_error || hw_ncpu_error || hw_cpufrequency_max_error || hw_busfrequency_max_error || hw_l2cachesize_error || hw_l3cachesize_error || hw_memsize_error) {
-        OsOutputDebugString("[Mac sys detect] ! error reading specs, down to tier 0\n", v27);
+        OsOutputDebugString("[Mac sys detect] ! error reading specs, down to tier 0\n");
         cpuIdx  = 0;
         macTier = 0;
     } else {
@@ -413,12 +414,10 @@ void ConsoleDetectDetectHardware(Hardware& hardware, bool& hwChanged) {
     hardware.cpuIdx     = cpuIdx;
     hardware.memIdx     = 0;
     hardware.soundIdx   = 0;
-    hardware.macTierIdx = macTier;
-    hardware.macVramMB  = vram_size / 0x100000;
 
-    hardware.cpuHw   = s_cpuHwSettings[cpuIdx];
+    hardware.cpuHw   = &s_cpuHwSettings[cpuIdx];
     hardware.videoHw = g_videoHardwareDB.GetRecord(hardware.videoID);
-    hardware.soundHw = s_soundHwSettings[hardware.soundIdx];
+    hardware.soundHw = &s_soundHwSettings[hardware.soundIdx];
 
     ConsoleDetectSaveHardware(hardware, hwChanged);
 
@@ -426,15 +425,15 @@ void ConsoleDetectDetectHardware(Hardware& hardware, bool& hwChanged) {
     GxLog("ConsoleDetectDetectHardware [Mac] ():");
     SStrPrintf(str, 1024, "\tcpuIdx: %d", hardware.cpuIdx);
     GxLog(str);
-    SStrPrintf(str, 1024, "\tvideoID: %d", hardware.videoIdx);
+    SStrPrintf(str, 1024, "\tvideoID: %d", hardware.videoID);
     GxLog(str);
     SStrPrintf(str, 1024, "\tsoundIdx: %d", hardware.soundIdx);
     GxLog(str);
     SStrPrintf(str, 1024, "\tmemIdx: %d", hardware.memIdx);
     GxLog(str);
-    SStrPrintf(str, 1024, "\tmacTierIdx: %d", hardware.macTierIdx);
+    SStrPrintf(str, 1024, "\tmacTierIdx: %d", macTier);
     GxLog(str);
-    SStrPrintf(str, 1024, "\tmacVramMB: %d", hardware.macVramMB);
+    SStrPrintf(str, 1024, "\tmacVramMB: %d", (vram_size / 0x100000));
     GxLog(str);
 }
 

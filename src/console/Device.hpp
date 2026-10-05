@@ -10,8 +10,14 @@ extern Hardware s_hardware;
 extern bool s_hwChanged;
 extern bool s_hwDetect;
 extern CGxFormat s_requestedFormat;
+extern CGxFormat s_lastGoodFormat;
+extern CGxFormat s_desktopFormat;
+extern CGxFormat s_fallbackFormat;
+extern char s_windowTitle[256];
 
-void ConsoleDeviceInitialize(const char* title);
+void ValidateFormatMonitor(CGxFormat& format);
+
+const char* ConsoleDeviceInitialize(const char* title);
 
 bool ConsoleDeviceExists();
 

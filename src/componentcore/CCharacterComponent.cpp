@@ -1,3 +1,4 @@
+#include <cstring>
 #include "componentcore/CCharacterComponent.hpp"
 
 #include <algorithm>

@@ -1,3 +1,4 @@
+#include <cmath>
 #include "ui/CSimpleFontString.hpp"
 #include "gx/Coordinate.hpp"
 #include "math/Utils.hpp"

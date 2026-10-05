@@ -1,3 +1,4 @@
+#include <cmath>
 #include "ui/CSimpleFrame.hpp"
 #include "event/Event.hpp"
 #include "event/Input.hpp"

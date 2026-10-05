@@ -1,11 +1,13 @@
 #include "gx/gll/GLDevice.h"
 #include "gx/gll/GLPool.h"
+#include "gx/Device.hpp"
 #include "gx/gll/GLUtil.h"
 #include "util/Autorelease.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <type_traits>
+#include <OpenGL/OpenGL.h>
 #include <ApplicationServices/ApplicationServices.h>
 #include <bc/Debug.hpp>
 
@@ -88,9 +90,86 @@ GLDevice::RendererInfo GLDevice::GetRendererInfo() {
 }
 
 void GLDevice::InitRendererInfo() {
-    // TODO
-
-    GLDevice::m_RendererInfo.init = 1;
+    m_RendererInfo = RendererInfo{};
+    if (!CGLGetCurrentContext()) {
+        m_RendererInfo.queryError = "GLL capability initialization requires a current OpenGL context";
+        return;
+    }
+    RendererInfo info;
+    info.queryError.clear();
+    const auto vendor = glGetString(GL_VENDOR);
+    const auto renderer = glGetString(GL_RENDERER);
+    const auto version = glGetString(GL_VERSION);
+    const auto extensions = reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS));
+    if (!vendor || !renderer || !version || !extensions) {
+        m_RendererInfo.queryError = std::string("OpenGL renderer query returned null: ") +
+            (!vendor ? "GL_VENDOR" : !renderer ? "GL_RENDERER" : !version ? "GL_VERSION" : "GL_EXTENSIONS");
+        return;
+    }
+    info.vendor = reinterpret_cast<const char*>(vendor);
+    info.renderer = reinterpret_cast<const char*>(renderer);
+    info.version = reinterpret_cast<const char*>(version);
+    auto has = [extensions](const char* extension) { return GllHasExtension(extensions, extension); };
+    // Discard earlier errors: the validity below describes these queries only.
+    while (glGetError() != GL_NO_ERROR) {}
+    auto checkQuery = [&info](const char* name) {
+        const GLenum error = glGetError();
+        if (error != GL_NO_ERROR && info.queryError.empty())
+            info.queryError = std::string("OpenGL query failed: ") + name + " (error " + std::to_string(error) + ")";
+    };
+    auto queryInteger = [&checkQuery](GLenum name, const char* label, GLint* value) {
+        glGetIntegerv(name, value);
+        checkQuery(label);
+    };
+    GLint fixedUnits = 0, fragmentUnits = 0, attributes = 0, textureSize = 0, cubeSize = 0;
+    queryInteger(GL_MAX_TEXTURE_UNITS, "GL_MAX_TEXTURE_UNITS", &fixedUnits);
+    queryInteger(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, "GL_MAX_TEXTURE_IMAGE_UNITS_ARB", &fragmentUnits);
+    queryInteger(GL_MAX_VERTEX_ATTRIBS_ARB, "GL_MAX_VERTEX_ATTRIBS_ARB", &attributes);
+    queryInteger(GL_MAX_TEXTURE_SIZE, "GL_MAX_TEXTURE_SIZE", &textureSize);
+    queryInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE, "GL_MAX_CUBE_MAP_TEXTURE_SIZE", &cubeSize);
+    info.hardware.textureUnits = std::min(fixedUnits, fragmentUnits);
+    info.hardware.vertexAttributes = attributes;
+    info.hardware.textureSize = textureSize;
+    info.hardware.cubeSize = cubeSize;
+    if (has("GL_ARB_texture_rectangle") || has("GL_EXT_texture_rectangle")) {
+        GLint size = 0;
+        queryInteger(GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB, "GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB", &size);
+        info.hardware.rectangleSize = size;
+    }
+    if (has("GL_EXT_texture_filter_anisotropic")) {
+        GLfloat anisotropy = 1.0f;
+        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &anisotropy);
+        checkQuery("GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT");
+        if (std::isfinite(anisotropy) && anisotropy >= 1 && anisotropy < 2147483648.0f)
+            info.hardware.anisotropy = static_cast<int>(anisotropy);
+        else if (info.queryError.empty()) info.queryError = "OpenGL reports an invalid anisotropic-filtering limit";
+    }
+    info.hardware.s3tc = has("GL_EXT_texture_compression_s3tc");
+    info.hardware.vertexProgram = has("GL_ARB_vertex_program");
+    info.hardware.fragmentProgram = has("GL_ARB_fragment_program");
+    info.hardware.nonPowerOfTwo = has("GL_ARB_texture_non_power_of_two");
+    GLint clips = 0;
+    queryInteger(GL_MAX_CLIP_PLANES, "GL_MAX_CLIP_PLANES", &clips);
+    info.unk36 = std::max(clips, 0);
+    if (has("GL_EXT_framebuffer_object")) {
+        GLint attachments = 0;
+        queryInteger(GL_MAX_COLOR_ATTACHMENTS_EXT, "GL_MAX_COLOR_ATTACHMENTS_EXT", &attachments);
+        info.max_color_attachments = std::max(attachments, 1);
+    }
+    GLint rendererID = 0;
+    const CGLError rendererError = CGLGetParameter(CGLGetCurrentContext(), kCGLCPCurrentRendererID, &rendererID);
+    if (rendererError != kCGLNoError && info.queryError.empty())
+        info.queryError = std::string("CGL renderer-ID query failed: ") + CGLErrorString(rendererError);
+    info.renderer_id = rendererID;
+    if (info.vendor.find("Apple") != std::string::npos) info.vendor_id = 0x106b;
+    else if (info.vendor.find("Intel") != std::string::npos) info.vendor_id = 0x8086;
+    else if (info.vendor.find("ATI") != std::string::npos || info.vendor.find("AMD") != std::string::npos) info.vendor_id = 0x1002;
+    else if (info.vendor.find("NVIDIA") != std::string::npos) info.vendor_id = 0x10de;
+    m_ExtARBShadow = has("GL_ARB_shadow");
+    m_ExtColorMaskIndexed = has("GL_EXT_draw_buffers2");
+    info.hardware.valid = info.queryError.empty();
+    info.init = info.hardware.valid;
+    m_RendererInfo = info;
 }
 
 void GLDevice::InitPools() {
@@ -1150,8 +1229,8 @@ void GLDevice::BlitFramebuffer(GLMipmap* src, const GLRect* srcRect, GLMipmap* d
     GLRect fullDstRect = {
         0,
         0,
-        dst ? dst->GetWidth() : this->m_Context.GetWidth(),
-        dst ? dst->GetHeight() : this->m_Context.GetHeight()
+        dst ? dst->GetWidth() : this->m_Context.GetBackingWidth(),
+        dst ? dst->GetHeight() : this->m_Context.GetBackingHeight()
     };
 
     BC_ASSERT(filter == GL_NEAREST);
@@ -1282,6 +1361,10 @@ void GLDevice::BlitFramebuffer(GLMipmap* src, const GLRect* srcRect, GLMipmap* d
     this->m_DefaultVertexArrayObject.m_Properties.m_VertexBase = 0;
     GLVertexArray::FindVertexArray(this, this->m_DefaultVertexArrayObject);
 
+    if (this->m_FrameNumber == 1) {
+        GLint vp[4] = {}; glGetIntegerv(GL_VIEWPORT, vp);
+        GxLog("GLL present: source=%dx%d; drawable=%ux%u; viewport=%d,%d,%d,%d; windowed=%d", fullSrcRect.width, fullSrcRect.height, width, height, vp[0], vp[1], vp[2], vp[3], this->m_Context.m_Windowed);
+    }
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     this->SetShader(GLShader::eVertexShader, vertexShader);
@@ -2335,6 +2418,10 @@ void GLDevice::SetDisplay(uint32_t width, uint32_t height, GLTextureFormat a4, G
         this->m_Context.SetFullscreenMode(width, height, a6, a8);
     }
 
+    if (this->m_UseWindowSystemBuffer && this->m_Context.m_Window) {
+        width = this->m_Context.GetBackingWidth();
+        height = this->m_Context.GetBackingHeight();
+    }
     this->ResetBackbuffer(width, height, a4, a5, v9);
 
     if (this->m_Context.m_Window) {
@@ -2464,7 +2551,14 @@ void GLDevice::SetModelView(GLEnum transform) {
 }
 
 void GLDevice::SetScissor(bool a2, const GLRect& a3) {
-    // TODO
+    if (this->m_States.rasterizer.scissorEnable != a2) {
+        if (a2) glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
+        this->m_States.rasterizer.scissorEnable = a2;
+    }
+    if (std::memcmp(&this->m_States.rasterizer.scissor, &a3, sizeof(a3))) {
+        glScissor(a3.left, a3.top, a3.width, a3.height);
+        this->m_States.rasterizer.scissor = a3;
+    }
 }
 
 void GLDevice::SetShader(GLShader::ShaderType shaderType, GLShader* shader) {

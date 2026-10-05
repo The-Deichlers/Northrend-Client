@@ -4,7 +4,7 @@
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
     // TODO
 
-    CommonMain();
+    return CommonMain();
 
     // TODO
 

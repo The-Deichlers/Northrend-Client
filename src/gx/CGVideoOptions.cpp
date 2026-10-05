@@ -1,3 +1,4 @@
+#include <cstdio>
 #include "gx/CGVideoOptions.hpp"
 #include "ui/FrameScript.hpp"
 #include "util/Unimplemented.hpp"

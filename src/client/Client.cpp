@@ -1,3 +1,4 @@
+#include <cstring>
 #include "client/Client.hpp"
 #include "async/AsyncFile.hpp"
 #include "client/ClientServices.hpp"
@@ -35,6 +36,9 @@
 #include <bc/os/Path.hpp>
 #include <bc/File.hpp>
 #include <cstdio>
+#if defined(WHOA_SYSTEM_MAC) || defined(WHOA_SYSTEM_LINUX)
+#include <sys/utsname.h>
+#endif
 #include <world/LoadingScreen.hpp>
 #include <async/AsyncFileRead.hpp>
 #include <clientobject/ObjectMgrClient.hpp>
@@ -221,6 +225,8 @@ void ClientPostClose(int32_t a1) {
     // TODO s_finalDialog = a1;
     EventPostCloseEx(nullptr);
 }
+
+static HSLOG s_startupLog = nullptr;
 
 // OFFSET: 0x402910
 void WowClientDestroy() {
@@ -483,7 +489,6 @@ bool TimingMethodCallback(CVar* h, const char* oldValue, const char* newValue, v
 
 // OFFSET: 0x4067F0 TODO
 int32_t InitializeGlobal() {
-    ProcessCommandLine();
 
     // TODO:
     // WowConfigureFileSystem::ReadBuildKeyFromFile("WoW.mfil");
@@ -568,7 +573,20 @@ int32_t InitializeGlobal() {
     SStrPrintf(path, sizeof(path), "%s%s", "Data\\", locale->GetString());
     SFile::SetDataPathAlternate(path);
     SFile::RebuildHash();
+    SLogWrite(s_startupLog, "Opening game archives");
     OpenArchives();
+    const char* requiredFiles[] = {
+        "DBFilesClient\\AreaTable.dbc",
+        "Interface\\GlueXML\\GlueXML.toc"
+    };
+    for (const char* file : requiredFiles) {
+        if (!SFile::FileExists(file)) {
+            SLogWrite(s_startupLog, "Fatal: required game file missing or unreadable: %s", file);
+            SLogFlush(s_startupLog);
+            std::fprintf(stderr, "Northrend: required game file '%s' is missing or unreadable. Supply complete legitimate 3.3.5a build 12340 data.\n", file);
+            return 0;
+        }
+    }
 
     // TODO: This method should be placed inside OpenArchives
     ClientServices::InitLoginServerCVars(1, locale->GetString());
@@ -601,6 +619,8 @@ int32_t InitializeGlobal() {
     //     SSetCurrentProcessAffinityMask(v5);
     // }
 
+    SLogWrite(s_startupLog, "Game-data preflight passed; initializing events and graphics");
+    SLogFlush(s_startupLog);
     BaseInitializeGlobal();
 
     EventInitialize(1, 0);
@@ -650,12 +670,16 @@ int32_t InitializeGlobal() {
 
     g_Startup_StringsDB.Load(__FILE__, __LINE__);
 
-    auto titleRecord = g_Startup_StringsDB.GetRecord(MSG_TITLE_WOW);
-    auto title = titleRecord ? titleRecord->m_message : "World of Warcraft";
+    const char* title = "Northrend";
     char v15[260];
-    SStrCopy(v15, title, 0x7FFFFFFF);
+    SStrCopy(v15, title, sizeof(v15));
 
-    ConsoleDeviceInitialize(v15);
+    if (const char* graphicsError = ConsoleDeviceInitialize(v15)) {
+        SLogWrite(s_startupLog, "Fatal: %s", graphicsError);
+        SLogFlush(s_startupLog);
+        std::fprintf(stderr, "Northrend: %s\n", graphicsError);
+        return 0;
+    }
 
     // OsIMEInitialize();
 
@@ -707,7 +731,7 @@ void BeginCloseGame() {
 }
 
 // OFFSET: 0x406C70 TODO
-void CommonMain() {
+int32_t CommonMain() {
     StormInitialize();
 
     // TODO:
@@ -725,7 +749,34 @@ void CommonMain() {
 
     OsSystemEnableCpuLog();
 
-    SFile::Initialize();
+    if (!ProcessCommandLine() || !SFile::Initialize()) {
+        StormDestroy();
+        return 1;
+    }
+
+    HSLOG& startupLog = s_startupLog;
+    if (!SLogCreate("Logs\\Northrend.log", STORM_LOG_FLAG_OPEN_FILE, &startupLog)) {
+        std::fprintf(stderr, "Northrend: cannot create Logs/Northrend.log in the data directory. Check write permissions.\n");
+    }
+    char dataPath[260] = {};
+    SFile::GetBasePath(dataPath, sizeof(dataPath));
+    SLogWrite(startupLog, "Northrend 3.3.5a build 12340; configuration=%s; platform=%s; architecture=%s", NORTHREND_BUILD_TYPE, NORTHREND_BUILD_OS, NORTHREND_BUILD_ARCH);
+#if defined(WHOA_SYSTEM_MAC) || defined(WHOA_SYSTEM_LINUX)
+    struct utsname systemInfo = {};
+    if (uname(&systemInfo) == 0) {
+        SLogWrite(startupLog, "Operating system: %s %s; machine=%s", systemInfo.sysname, systemInfo.release, systemInfo.machine);
+    }
+#endif
+    SLogWrite(startupLog, "Data directory: %s", dataPath);
+#if defined(WHOA_SYSTEM_MAC)
+    SLogWrite(startupLog, "Renderer: OpenGL (GLL)");
+#elif defined(WHOA_SYSTEM_LINUX)
+    SLogWrite(startupLog, "Renderer: OpenGL (SDL3)");
+#else
+    SLogWrite(startupLog, "Renderer: Windows device selection (see Logs/gx.log)");
+#endif
+    SLogWrite(startupLog, "Initializing client, archives, databases and graphics");
+    SLogFlush(startupLog);
 
     uint32_t sendErrorLogs = 1;
     if (!SRegLoadValue("World of Warcraft\\Client", "SendErrorLogs", 0, &sendErrorLogs)) {
@@ -739,12 +790,21 @@ void CommonMain() {
     //     SErrRegisterHandler(SendErrorLog);
     // }
 
-    if (InitializeGlobal()) {
+    int32_t initialized = InitializeGlobal();
+    if (initialized) {
+        SLogWrite(startupLog, "Initialization complete; entering event loop");
+        SLogFlush(startupLog);
         EventDoMessageLoop();
         BeginCloseGame();
     }
 
+    if (!initialized) {
+        SLogWrite(startupLog, "Fatal: client initialization failed; inspect GlueXML.log and gx.log");
+        std::fprintf(stderr, "Northrend: client initialization failed. See Logs/Northrend.log.\n");
+    }
+    SLogClose(startupLog);
     StormDestroy();
+    return initialized ? 0 : 1;
 
     // TODO:
     // Misc Cleanup
@@ -782,6 +842,8 @@ void WowClientInit() {
 
     ClientRegisterConsoleCommands();
 
+    SLogWrite(s_startupLog, "Loading client databases");
+    SLogFlush(s_startupLog);
     ClientDBInitialize();
 
     LoadingScreenInitialize();
@@ -793,6 +855,8 @@ void WowClientInit() {
     // sub_6F66B0();
 
     FrameXML_RegisterDefault();
+    SLogWrite(s_startupLog, "Initializing GlueXML scripts and login UI");
+    SLogFlush(s_startupLog);
     GlueScriptEventsInitialize();
     ScriptEventsInitialize();
 

@@ -1,3 +1,4 @@
+#include <cmath>
 #include "world/CWorld.hpp"
 #include "world/CWorldScene.hpp"
 #include "world/map/CMap.hpp"

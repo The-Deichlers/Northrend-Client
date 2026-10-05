@@ -34,7 +34,7 @@ const char* UpdateInstallLocation();
 
 bool IsCommonMpqExists();
 
-void CommonMain();
+int32_t CommonMain();
 
 void StormInitialize();
 

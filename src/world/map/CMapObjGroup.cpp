@@ -1,3 +1,5 @@
+#include <cstring>
+#include <cmath>
 #include "world/map/CMapObjGroup.hpp"
 #include "async/AsyncFile.hpp"
 #include "world/map/CMapObj.hpp"
@@ -611,10 +613,13 @@ void CMapObjGroup::SetLighting(uint32_t mode) {
             g_theGxDevicePtr->XformView(xform);
             C3Vector dir = xform.TransformDirection(light->m_dir);
 
-            g_theGxDevicePtr->ShaderConstantsSet(GxSh_Vertex, 9, &C4Vector(ambient), 1);
-            g_theGxDevicePtr->ShaderConstantsSet(GxSh_Vertex, 10, &C4Vector(ambient), 1);
-            g_theGxDevicePtr->ShaderConstantsSet(GxSh_Vertex, 11, &C4Vector(diffuse), 1);
-            g_theGxDevicePtr->ShaderConstantsSet(GxSh_Vertex, 12, &C4Vector(dir), 1);
+            C4Vector ambientConstant(ambient);
+            C4Vector diffuseConstant(diffuse);
+            C4Vector directionConstant(dir);
+            g_theGxDevicePtr->ShaderConstantsSet(GxSh_Vertex, 9, &ambientConstant, 1);
+            g_theGxDevicePtr->ShaderConstantsSet(GxSh_Vertex, 10, &ambientConstant, 1);
+            g_theGxDevicePtr->ShaderConstantsSet(GxSh_Vertex, 11, &diffuseConstant, 1);
+            g_theGxDevicePtr->ShaderConstantsSet(GxSh_Vertex, 12, &directionConstant, 1);
         } else {
             static bool s_unlitInit = false;
             static C4Vector s_unlitDiffuse;

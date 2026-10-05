@@ -1,3 +1,4 @@
+#include <cstring>
 #include "ui/CSimpleMovieFrame.hpp"
 #include "ui/CSimpleMovieFrameScript.hpp"
 #include "util/SFile.hpp"

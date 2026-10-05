@@ -1,3 +1,9 @@
+#if !defined(_WIN32)
+#include <alloca.h>
+#else
+#include <malloc.h>
+#define alloca _alloca
+#endif
 #include "model/CM2Shared.hpp"
 #include "async/AsyncFile.hpp"
 #include "gx/Buffer.hpp"
@@ -1294,11 +1300,11 @@ void CM2Shared::ConvertTextureValuesToCombos() {
     uint32_t batchCount = this->m_skinData->batches.Count();
 
     M2ComboList comboList;
-    comboList.data = static_cast<uint16_t*>(_alloca(4 * batchCount));
+    comboList.data = static_cast<uint16_t*>(alloca(4 * batchCount));
     comboList.count = 0;
 
     M2ComboList transformList;
-    transformList.data = static_cast<uint16_t*>(_alloca(4 * batchCount));
+    transformList.data = static_cast<uint16_t*>(alloca(4 * batchCount));
     transformList.count = 0;
 
     int32_t prevMaterialIndex = -1;

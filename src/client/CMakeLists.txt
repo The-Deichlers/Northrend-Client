@@ -53,3 +53,9 @@ target_link_libraries(client
         common
         storm
 )
+
+target_compile_definitions(client PRIVATE
+    NORTHREND_BUILD_TYPE="$<CONFIG>"
+    NORTHREND_BUILD_OS="${CMAKE_SYSTEM_NAME}"
+    NORTHREND_BUILD_ARCH="${CMAKE_SYSTEM_PROCESSOR}"
+)

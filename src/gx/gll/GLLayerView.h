@@ -11,6 +11,7 @@ class GLWindow;
 
 @property CGDirectDisplayID m_display;
 @property GLWindow* m_GLWindow;
+@property BOOL m_dispatchingResize;
 @property (retain) NSOpenGLContext* m_savedContext;
 @property (retain) NSCursor* m_cursor;
 
