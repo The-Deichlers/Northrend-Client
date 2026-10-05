@@ -1,6 +1,6 @@
 # Northrend
 
-[![Push](https://github.com/The-Deichlers/Northrend-Client/actions/workflows/push.yml/badge.svg?branch=northrend)](https://github.com/The-Deichlers/Northrend-Client/actions/workflows/push.yml)
+[![Platform validation](https://github.com/The-Deichlers/Northrend-Client/actions/workflows/push.yml/badge.svg?branch=northrend)](https://github.com/The-Deichlers/Northrend-Client/actions/workflows/push.yml)
 
 **Northrend** is the canonical open-source World of Warcraft 3.3.5a (build 12340) client project for The-Deichlers ecosystem.
 
@@ -35,8 +35,12 @@ launch -> authenticate -> realm -> character select -> enter world
 
 ## Build and validation status
 
-CMake is the authoritative full-client build path. Apple Silicon is the primary
-validation target; inherited Windows and Linux targets are also attempted by CI.
+CMake is the authoritative full-client build path. Official support targets
+**Windows 11 25H2+**, **macOS Tahoe 26+ on Apple Silicon / arm64**, and
+**Ubuntu 26.04 LTS+**. Debug and Release builds/tests run on all three platforms.
+The baseline and newer releases are supported; legacy compatibility is not a
+project requirement. See [Supported Platform Baseline](./docs/BUILDING.md#supported-platform-baseline)
+for CI reference environments and the Windows hosted-runner discrepancy.
 Zig is preserved but its source lists are stale and it is not a supported build
 path for this milestone.
 

@@ -1,22 +1,64 @@
 # Building Northrend
 
-CMake is the authoritative build path. Windows, macOS and Linux are inherited
-platform targets; see the [validation report](milestones/MILESTONE-0-REPORT.md)
-for actual validation, rather than treating a target as proof of support.
+CMake is the authoritative build path. See the
+[Milestone 0 report](milestones/MILESTONE-0-REPORT.md) for historical validation
+and the [platform baseline report](milestones/PLATFORM-MODERN-BASELINE.md) for
+validation of the policy adopted after M0.
+
+## Supported Platform Baseline
+
+| Platform | Official baseline |
+| --- | --- |
+| Windows | Windows 11 25H2+ |
+| macOS | macOS Tahoe 26+ / Apple Silicon (`arm64`) |
+| Linux | Ubuntu 26.04 LTS+ |
+
+Northrend targets contemporary, supported desktop operating systems rather than
+preserving legacy OS compatibility. Platform baselines may advance as older
+releases leave normal support.
+
+These are Northrend support baselines, not historical upstream requirements.
+Support includes the baseline and newer releases: test current operating systems,
+adopt current compilers/SDKs, and advance the baseline deliberately. Windows 10,
+Intel macOS, and Ubuntu 22.04 are not official targets. Other modern Linux
+distributions and older systems may happen to work, but their compatibility is
+not a project requirement. Patches solely for obsolete OS versions should
+generally not be accepted. Harmless inherited compatibility code may remain;
+new architecture decisions must not be constrained by legacy support.
+
+### CI reference environments
+
+Debug and Release each run all nine CTest checks on `ubuntu-26.04` (x64, GCC 15),
+`macos-26` (arm64, the image's current stable Xcode/Clang), and
+`windows-2025-vs2026` (x64, MSVC). CI logs OS/version, architecture, CMake and
+compiler versions; macOS also verifies the produced executable's arm64 slice
+and logs its deployment metadata.
+
+GitHub provides stable Ubuntu 26.04 and macOS 26 arm64 images. Its standard x64
+Windows runner is **Windows Server 2025**, not Windows 11 25H2; these jobs validate
+the Windows build/toolchain and tests, not desktop-runtime acceptance on Windows
+11. Windows 11 arm64 runners exist, but substituting them would change the
+inherited x64 validation architecture. Do not present the Server jobs as Windows
+11 graphical validation. Review runner/toolchain updates as newer supported OS
+releases arrive. See [GitHub's image inventory](https://github.com/actions/runner-images).
 
 ## Apple Silicon
 
 Install Xcode with its command-line tools and CMake 3.13 or newer. Select the
 Xcode developer directory with `xcode-select` if your compiler cannot find the
 macOS SDK. The milestone was tested with CMake 4.4.3 and Apple Clang 21.
-The default macOS deployment target is 11.0; an explicit override is respected.
+Use a Tahoe 26+ SDK. CMake defaults to deployment target **26.0** and architecture
+**arm64** before compiler initialization. The helper explicitly sets both values,
+including when reconfiguring an older build cache. Direct CMake callers should
+use fresh build directories; explicit lower deployment targets, Intel or universal
+architecture overrides are experimental and outside official support.
 No Rosetta, Homebrew graphics/audio library, or proprietary SDK is required by
 the default build.
 
 ```sh
 git clone --recurse-submodules https://github.com/The-Deichlers/Northrend-Client.git
 cd Northrend-Client
-git switch milestone-0-reproducible-build
+git switch northrend
 ./scripts/build.sh debug clean test
 ./scripts/build.sh release clean test
 ```
@@ -30,7 +72,7 @@ Equivalent direct commands:
 
 ```sh
 git submodule update --init --recursive
-cmake -S . -B build/debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_OSX_ARCHITECTURES=arm64
+cmake -S . -B build/debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=26.0
 cmake --build build/debug --parallel 8
 ctest --test-dir build/debug --output-on-failure
 cmake --install build/debug --prefix build/debug/install
@@ -124,8 +166,10 @@ executables and four asset-free startup regression checks.
 Use the same CMake commands, omitting `CMAKE_OSX_ARCHITECTURES`. With Visual
 Studio, configure `CMAKE_BUILD_TYPE` to match `--config` (the inherited assertion
 and UBSan selection is configure-time), and pass `-C Debug`/`-C Release` to CTest.
-Windows binaries are under `build/bin/<configuration>/Northrend.exe` before
-installation. The CI workflow attempts both configurations on all three OSes.
+Use a current Visual Studio/MSVC and Windows SDK on Windows 11 25H2+. On Ubuntu
+26.04 LTS+, install `cmake g++ libopengl-dev libglx-dev libxext-dev libglvnd-dev`
+with apt before configuring. Windows binaries are under `build/bin/<configuration>/Northrend.exe` before
+installation. The CI workflow requires both configurations on all three platforms.
 
 ## Zig status
 

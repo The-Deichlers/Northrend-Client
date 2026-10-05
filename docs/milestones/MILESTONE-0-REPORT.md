@@ -3,7 +3,17 @@
 Status: **Milestone 0 native startup acceptance passed**. The native Apple Silicon OpenGL GLL
 client reaches the real asset-backed 12340 login screen with the supplied clean
 and HD installations. Startup, input, window resizing, and normal shutdown are
-implemented. The PR awaits final merge review; no server connection or credentials are used.
+implemented. No server connection or credentials were used. M0 was subsequently
+integrated through PR #1 at `f416e6e56373708e0a869be60c48fd4102945efc`.
+
+## Policy adopted after Milestone 0
+
+After M0 integration, official support advances to Windows 11 25H2+, macOS Tahoe
+26+ on Apple Silicon / arm64, and Ubuntu 26.04 LTS+. Supported Mac builds target
+macOS 26.0 rather than the inherited 11.0 deployment setting used during M0.
+These policy changes do not rewrite the OS/toolchain, commands, or CI evidence
+below. See [Supported Platform Baseline](../BUILDING.md#supported-platform-baseline)
+and [its separate validation report](PLATFORM-MODERN-BASELINE.md).
 
 ## Machine, source, and build
 
@@ -200,5 +210,6 @@ The legacy OpenGL/Carbon and old parser/library stack remain technical debt.
 Unimplemented particle/model operations still produce startup diagnostics; the
 validated login UI remains visible and responsive within this milestone's scope.
 
-Leave the PR open for final merge review; do not merge automatically. Milestone 1 must be a separate
-login-to-world/server compatibility task after this baseline is accepted.
+At closeout, PR #1 was left open for separate final merge review and was later
+integrated. Milestone 1 remains a separate login-to-world/server compatibility
+task, after the post-M0 platform baseline has been reviewed and merged.

@@ -116,7 +116,17 @@ When implementation details are uncertain, compare against the original 3.3.5a b
 
 ### Modern platforms
 
-Keep macOS/Apple Silicon healthy while preserving Windows and Linux wherever practical. Platform modernization should avoid altering game behavior unnecessarily.
+Official baselines are Windows 11 25H2+, macOS Tahoe 26+ on Apple Silicon / arm64,
+and Ubuntu 26.04 LTS+. Support includes newer releases; use current operating
+systems, compilers, and SDKs, and deliberately advance baselines as releases leave
+normal support. Northrend targets contemporary, supported desktop operating
+systems rather than preserving legacy OS compatibility. Harmless inherited code
+may remain, but obsolete compatibility must not constrain new architecture.
+
+The platform-baseline task follows integrated Milestone 0 and must be reviewed
+and merged independently before Milestone 1. It changes policy/build/CI only;
+OpenGL, windowing, input, networking, and game behavior retain their validated
+implementations. See [the build policy](BUILDING.md#supported-platform-baseline).
 
 ### Documentation
 
@@ -126,7 +136,7 @@ Significant subsystems and compatibility fixes should be documented alongside th
 
 - `northrend`: canonical project branch.
 - `development`: imported upstream development reference.
-- `master`: inherited upstream/default history; do not base new Northrend work on it.
+- `master`: inherited upstream history; do not base new Northrend work on it.
 - Feature work: short-lived branches from `northrend`, merged back after review/testing.
 
 ## Test policy
