@@ -6,7 +6,6 @@ on:
       - northrend
       - development
       - master
-      - milestone-0-reproducible-build
   pull_request:
     branches: [northrend]
 

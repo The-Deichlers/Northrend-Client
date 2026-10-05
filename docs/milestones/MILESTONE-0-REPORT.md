@@ -3,7 +3,7 @@
 Status: **Milestone 0 native startup acceptance passed**. The native Apple Silicon OpenGL GLL
 client reaches the real asset-backed 12340 login screen with the supplied clean
 and HD installations. Startup, input, window resizing, and normal shutdown are
-implemented. The PR remains draft; no server connection or credentials are used.
+implemented. The PR awaits final merge review; no server connection or credentials are used.
 
 ## Machine, source, and build
 
@@ -186,6 +186,11 @@ not contain proprietary assets; native graphical acceptance is local. Earlier
 baseline runs passed all six, and exposed dependency lifetime/bounds defects now
 covered by the preserved generated-source corrections in `DependencyFixes.cmake`.
 
+Downstream dependency corrections should be contributed upstream where appropriate
+or moved into maintained Northrend dependency forks when they become long-term
+project requirements. `DependencyFixes.cmake` is a bounded compatibility bridge,
+not an unlimited permanent patch collection.
+
 Audio/FMOD is disabled by default; native movie playback is not implemented.
 Fullscreen graphics-mode switching, gameplay, server compatibility, Metal,
 production packaging/distribution, and new graphics are outside this validation.
@@ -195,5 +200,5 @@ The legacy OpenGL/Carbon and old parser/library stack remain technical debt.
 Unimplemented particle/model operations still produce startup diagnostics; the
 validated login UI remains visible and responsive within this milestone's scope.
 
-Keep the PR in draft and do not merge automatically. Milestone 1 must be a separate
+Leave the PR open for final merge review; do not merge automatically. Milestone 1 must be a separate
 login-to-world/server compatibility task after this baseline is accepted.
