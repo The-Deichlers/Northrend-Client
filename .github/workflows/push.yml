@@ -1,4 +1,4 @@
-name: Push
+name: Platform validation
 
 on:
   push:
@@ -23,31 +23,54 @@ jobs:
       matrix:
         build_type: [Debug, Release]
         config:
-          - name: Ubuntu Latest (GCC)
-            os: ubuntu-latest
-            cc: gcc
-            cxx: g++
+          - name: Ubuntu 26.04 (GCC)
+            os: ubuntu-26.04
+            cc: gcc-15
+            cxx: g++-15
+            configure_args: ""
 
-          - name: macOS Latest (Clang)
-            os: macos-latest
+          - name: macOS Tahoe arm64 (Clang)
+            os: macos-26
             cc: clang
             cxx: clang++
+            configure_args: -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=26.0
 
-          - name: Windows Latest (MSVC)
-            os: windows-latest
+          - name: Windows Server 2025 (MSVC 2026)
+            os: windows-2025-vs2026
             cc: cl
             cxx: cl
+            configure_args: ""
+
+    env:
+      CC: ${{ matrix.config.cc }}
+      CXX: ${{ matrix.config.cxx }}
 
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: What OS?
+      - name: Platform and toolchain information
         shell: bash
         run: |
-          echo "$RUNNER_OS / $RUNNER_ARCH"
+          printf '%s / %s\n' "$RUNNER_OS" "$RUNNER_ARCH"
           cmake --version
           uname -m
+          case "$RUNNER_OS" in
+            Linux)
+              cat /etc/os-release
+              "$CXX" --version
+              ;;
+            macOS)
+              sw_vers
+              test "$(uname -m)" = arm64
+              xcodebuild -version
+              "$CXX" --version
+              ;;
+            Windows)
+              pwsh -NoProfile -Command 'Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version, OSArchitecture | Format-List'
+              # CMake Configure logs the detected MSVC compiler version.
+              ;;
+          esac
 
       - name: Install dependencies (Ubuntu)
         if: runner.os == 'Linux'
@@ -59,10 +82,17 @@ jobs:
         run: mkdir build
 
       - name: Configure
-        run: cd build && cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        run: cd build && cmake .. -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ${{ matrix.config.configure_args }}
 
       - name: Build
         run: cmake --build build --config ${{ matrix.build_type }} --parallel 3
+
+      - name: Verify native macOS artifact
+        if: runner.os == 'macOS'
+        run: |
+          file build/bin/Northrend
+          test "$(lipo -archs build/bin/Northrend)" = arm64
+          xcrun vtool -show-build build/bin/Northrend
 
       - name: Test
         run: ctest --test-dir build -C ${{ matrix.build_type }} --output-on-failure
