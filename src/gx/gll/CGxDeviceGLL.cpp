@@ -805,6 +805,10 @@ void CGxDeviceGLL::ISceneBegin() {
 
 const char* CGxDeviceGLL::ISetCaps(const CGxFormat& format) {
     const auto info = GLDevice::GetRendererInfo();
+    if (!info.hardware.valid) {
+        this->m_caps = CGxCaps{};
+        return GLDevice::m_RendererInfo.queryError.c_str();
+    }
     if (const char* error = GllTranslateCaps(info.hardware, this->m_caps)) return error;
     GxLog("OpenGL: vendor=%s; renderer=%s; version=%s", info.vendor.c_str(), info.renderer.c_str(), info.version.c_str());
     GxLog("GLL capabilities: texture units=%d; attributes=%d; streams=%d; texture size=%u; anisotropy=%u; ARB programs=yes; S3TC=yes",

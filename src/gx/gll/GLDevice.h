@@ -42,6 +42,7 @@ class GLDevice {
             uint8_t init = 0;
             GllHardwareCaps hardware;
             std::string vendor, renderer, version;
+            std::string queryError = "OpenGL capability initialization has not run";
             uint32_t vendor_id = 0;
             uint32_t renderer_id = 0;
             uint32_t max_color_attachments = 1;

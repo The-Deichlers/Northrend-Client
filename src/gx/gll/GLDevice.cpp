@@ -90,54 +90,76 @@ GLDevice::RendererInfo GLDevice::GetRendererInfo() {
 }
 
 void GLDevice::InitRendererInfo() {
-    if (!CGLGetCurrentContext()) return;
+    m_RendererInfo = RendererInfo{};
+    if (!CGLGetCurrentContext()) {
+        m_RendererInfo.queryError = "GLL capability initialization requires a current OpenGL context";
+        return;
+    }
     RendererInfo info;
+    info.queryError.clear();
     const auto vendor = glGetString(GL_VENDOR);
     const auto renderer = glGetString(GL_RENDERER);
     const auto version = glGetString(GL_VERSION);
     const auto extensions = reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS));
-    if (!vendor || !renderer || !version || !extensions) return;
+    if (!vendor || !renderer || !version || !extensions) {
+        m_RendererInfo.queryError = std::string("OpenGL renderer query returned null: ") +
+            (!vendor ? "GL_VENDOR" : !renderer ? "GL_RENDERER" : !version ? "GL_VERSION" : "GL_EXTENSIONS");
+        return;
+    }
     info.vendor = reinterpret_cast<const char*>(vendor);
     info.renderer = reinterpret_cast<const char*>(renderer);
     info.version = reinterpret_cast<const char*>(version);
     auto has = [extensions](const char* extension) { return GllHasExtension(extensions, extension); };
     // Discard earlier errors: the validity below describes these queries only.
     while (glGetError() != GL_NO_ERROR) {}
+    auto checkQuery = [&info](const char* name) {
+        const GLenum error = glGetError();
+        if (error != GL_NO_ERROR && info.queryError.empty())
+            info.queryError = std::string("OpenGL query failed: ") + name + " (error " + std::to_string(error) + ")";
+    };
+    auto queryInteger = [&checkQuery](GLenum name, const char* label, GLint* value) {
+        glGetIntegerv(name, value);
+        checkQuery(label);
+    };
     GLint fixedUnits = 0, fragmentUnits = 0, attributes = 0, textureSize = 0, cubeSize = 0;
-    glGetIntegerv(GL_MAX_TEXTURE_UNITS, &fixedUnits);
-    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &fragmentUnits);
-    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS_ARB, &attributes);
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &textureSize);
-    glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &cubeSize);
+    queryInteger(GL_MAX_TEXTURE_UNITS, "GL_MAX_TEXTURE_UNITS", &fixedUnits);
+    queryInteger(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, "GL_MAX_TEXTURE_IMAGE_UNITS_ARB", &fragmentUnits);
+    queryInteger(GL_MAX_VERTEX_ATTRIBS_ARB, "GL_MAX_VERTEX_ATTRIBS_ARB", &attributes);
+    queryInteger(GL_MAX_TEXTURE_SIZE, "GL_MAX_TEXTURE_SIZE", &textureSize);
+    queryInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE, "GL_MAX_CUBE_MAP_TEXTURE_SIZE", &cubeSize);
     info.hardware.textureUnits = std::min(fixedUnits, fragmentUnits);
     info.hardware.vertexAttributes = attributes;
     info.hardware.textureSize = textureSize;
     info.hardware.cubeSize = cubeSize;
     if (has("GL_ARB_texture_rectangle") || has("GL_EXT_texture_rectangle")) {
         GLint size = 0;
-        glGetIntegerv(GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB, &size);
+        queryInteger(GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB, "GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB", &size);
         info.hardware.rectangleSize = size;
     }
     if (has("GL_EXT_texture_filter_anisotropic")) {
         GLfloat anisotropy = 1.0f;
         glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &anisotropy);
-        info.hardware.anisotropy = static_cast<int>(anisotropy);
+        checkQuery("GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT");
+        if (std::isfinite(anisotropy) && anisotropy >= 1 && anisotropy < 2147483648.0f)
+            info.hardware.anisotropy = static_cast<int>(anisotropy);
+        else if (info.queryError.empty()) info.queryError = "OpenGL reports an invalid anisotropic-filtering limit";
     }
     info.hardware.s3tc = has("GL_EXT_texture_compression_s3tc");
     info.hardware.vertexProgram = has("GL_ARB_vertex_program");
     info.hardware.fragmentProgram = has("GL_ARB_fragment_program");
     info.hardware.nonPowerOfTwo = has("GL_ARB_texture_non_power_of_two");
     GLint clips = 0;
-    glGetIntegerv(GL_MAX_CLIP_PLANES, &clips);
+    queryInteger(GL_MAX_CLIP_PLANES, "GL_MAX_CLIP_PLANES", &clips);
     info.unk36 = std::max(clips, 0);
     if (has("GL_EXT_framebuffer_object")) {
         GLint attachments = 0;
-        glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, &attachments);
+        queryInteger(GL_MAX_COLOR_ATTACHMENTS_EXT, "GL_MAX_COLOR_ATTACHMENTS_EXT", &attachments);
         info.max_color_attachments = std::max(attachments, 1);
     }
-    info.hardware.valid = glGetError() == GL_NO_ERROR;
     GLint rendererID = 0;
-    CGLGetParameter(CGLGetCurrentContext(), kCGLCPCurrentRendererID, &rendererID);
+    const CGLError rendererError = CGLGetParameter(CGLGetCurrentContext(), kCGLCPCurrentRendererID, &rendererID);
+    if (rendererError != kCGLNoError && info.queryError.empty())
+        info.queryError = std::string("CGL renderer-ID query failed: ") + CGLErrorString(rendererError);
     info.renderer_id = rendererID;
     if (info.vendor.find("Apple") != std::string::npos) info.vendor_id = 0x106b;
     else if (info.vendor.find("Intel") != std::string::npos) info.vendor_id = 0x8086;
@@ -145,6 +167,7 @@ void GLDevice::InitRendererInfo() {
     else if (info.vendor.find("NVIDIA") != std::string::npos) info.vendor_id = 0x10de;
     m_ExtARBShadow = has("GL_ARB_shadow");
     m_ExtColorMaskIndexed = has("GL_EXT_draw_buffers2");
+    info.hardware.valid = info.queryError.empty();
     info.init = info.hardware.valid;
     m_RendererInfo = info;
 }
