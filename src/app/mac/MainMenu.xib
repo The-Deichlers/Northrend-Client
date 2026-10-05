@@ -18,39 +18,39 @@
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <menu key="submenu" title="Northrend" systemMenu="apple" id="57">
                         <items>
-                            <menuItem title="MENU_ABOUT" id="58">
+                            <menuItem title="About Northrend" id="58">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="orderFrontStandardAboutPanel:" target="-2" id="142"/>
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="236"/>
-                            <menuItem title="MENU_SWITCH_TO_FULLSCREEN" keyEquivalent="m" id="458">
+                            <menuItem title="Toggle Full Screen" keyEquivalent="m" id="458">
                                 <connections>
                                     <action selector="toggleFullscreenMode:" target="451" id="460"/>
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="459"/>
-                            <menuItem title="MENU_HIDE" keyEquivalent="h" id="134">
+                            <menuItem title="Hide Northrend" keyEquivalent="h" id="134">
                                 <connections>
                                     <action selector="hide:" target="-1" id="367"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="MENU_HIDE_OTHERS" keyEquivalent="h" id="145">
+                            <menuItem title="Hide Others" keyEquivalent="h" id="145">
                                 <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
                                 <connections>
                                     <action selector="hideOtherApplications:" target="-1" id="368"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="MENU_SHOW_ALL" id="150">
+                            <menuItem title="Show All" id="150">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="unhideAllApplications:" target="-1" id="370"/>
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="149"/>
-                            <menuItem title="MENU_QUIT" keyEquivalent="q" id="136">
-                                <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
+                            <menuItem title="Quit Northrend" keyEquivalent="q" id="136">
+                                <modifierMask key="keyEquivalentModifierMask" command="YES"/>
                                 <connections>
                                     <action selector="terminate:" target="-1" id="369"/>
                                 </connections>
@@ -58,32 +58,32 @@
                         </items>
                     </menu>
                 </menuItem>
-                <menuItem title="MENU_EDIT" id="217">
+                <menuItem title="Edit" id="217">
                     <modifierMask key="keyEquivalentModifierMask"/>
-                    <menu key="submenu" title="MENU_EDIT" id="205">
+                    <menu key="submenu" title="Edit" id="205">
                         <items>
-                            <menuItem title="MENU_UNDO" keyEquivalent="z" id="207">
+                            <menuItem title="Undo" keyEquivalent="z" id="207">
                                 <connections>
                                     <action selector="undo:" target="-1" id="223"/>
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="206"/>
-                            <menuItem title="MENU_EDIT_CUT" keyEquivalent="x" id="199">
+                            <menuItem title="Cut" keyEquivalent="x" id="199">
                                 <connections>
                                     <action selector="cut:" target="-1" id="228"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="MENU_EDIT_COPY" keyEquivalent="c" id="197">
+                            <menuItem title="Copy" keyEquivalent="c" id="197">
                                 <connections>
                                     <action selector="copy:" target="-1" id="224"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="MENU_EDIT_PASTE" keyEquivalent="v" id="203">
+                            <menuItem title="Paste" keyEquivalent="v" id="203">
                                 <connections>
                                     <action selector="paste:" target="-1" id="226"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="MENU_EDIT_SELECT_ALL" keyEquivalent="a" id="198">
+                            <menuItem title="Select All" keyEquivalent="a" id="198">
                                 <connections>
                                     <action selector="selectAll:" target="-1" id="232"/>
                                 </connections>
@@ -91,9 +91,9 @@
                         </items>
                     </menu>
                 </menuItem>
-                <menuItem title="MENU_WINDOW" id="19">
+                <menuItem title="Window" id="19">
                     <modifierMask key="keyEquivalentModifierMask"/>
-                    <menu key="submenu" title="MENU_WINDOW" systemMenu="window" id="24">
+                    <menu key="submenu" title="Window" systemMenu="window" id="24">
                         <items>
                             <menuItem title="Show Batch Viewer" id="449">
                                 <connections>

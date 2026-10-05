@@ -1,10 +1,17 @@
 #include "gx/gll/GLLayerView.h"
+#include "os/Input.hpp"
+#include "os/Queue.hpp"
 #include "gx/gll/GLContext.h"
 #include "gx/gll/GLDevice.h"
 #include "gx/gll/GLWindow.h"
 #include <cmath>
 
 @implementation GLLayerView
+
+- (BOOL)windowShouldClose:(id)sender {
+    OsQueuePut(OS_INPUT_CLOSE, 0, 0, 0, 0);
+    return NO; // The event scheduler owns orderly client shutdown.
+}
 
 - (BOOL)acceptsFirstResponder {
     return YES;
@@ -156,6 +163,8 @@
 }
 
 - (void)viewDidEndLiveResize {
+    if (self.m_dispatchingResize) return;
+    self.m_dispatchingResize = YES;
     int32_t width = std::floor(self.frame.size.width);
     int32_t height = std::floor(self.frame.size.height);
 
@@ -166,6 +175,15 @@
         height,
         false
     );
+    self.m_dispatchingResize = NO;
+}
+
+- (void)windowDidResize:(NSNotification*)notification {
+    // Zoom and programmatic resizing do not invoke viewDidEndLiveResize.
+    if (![self inLiveResize] && self.m_GLWindow->m_Context &&
+        self.m_GLWindow->m_Context->m_Device &&
+        self.m_GLWindow->m_Context->m_Device->m_BackBufferColor && [self callbacks]->OnResized)
+        [self viewDidEndLiveResize];
 }
 
 - (void)update {

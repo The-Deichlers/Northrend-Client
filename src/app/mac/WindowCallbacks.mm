@@ -159,11 +159,14 @@ void MacOnMouseUp(int16_t button, int32_t x, int32_t y) {
 }
 
 void MacOnResized(int32_t width, int32_t height, bool a3) {
-    if (a3) {
+    if (a3 || width <= 0 || height <= 0) {
         return;
     }
 
     static_cast<CGxDeviceGLL*>(g_theGxDevicePtr)->Resize(width, height);
+
+    // ConvertPosition caches this rectangle; Windows updates it on WM_SIZE.
+    s_defaultWindowRect = {0, 0, width, height};
 
     OsQueuePut(OS_INPUT_SIZE, width, height, 0, 0);
 
