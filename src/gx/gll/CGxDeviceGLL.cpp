@@ -498,6 +498,16 @@ void CGxDeviceGLL::IRsSendToHw(EGxRenderState which) {
         glTexEnvi(GL_TEXTURE_ENV, arg2, sources[translated.weight]);
         glTexEnvi(GL_TEXTURE_ENV, alpha ? GL_OPERAND2_ALPHA : GL_OPERAND2_RGB, GL_SRC_ALPHA);
         glTexEnvi(GL_TEXTURE_ENV, alpha ? GL_ALPHA_SCALE : GL_RGB_SCALE, translated.scale);
+        auto& cached = this->m_glDevice.m_States.fixedFunc.texOp[stage];
+        if (alpha) {
+            cached.alphaOp = operations[translated.operation];
+            cached.alphaArg0 = sources[translated.first]; cached.alphaArg1 = sources[translated.second];
+            cached.alphaArg2 = sources[translated.weight]; cached.alphaScale = translated.scale;
+        } else {
+            cached.colorOp = operations[translated.operation];
+            cached.colorArg0 = sources[translated.first]; cached.colorArg1 = sources[translated.second];
+            cached.colorArg2 = sources[translated.weight]; cached.colorScale = translated.scale;
+        }
         return;
     }
     if (which >= GxRs_TextureShader0 && which <= GxRs_TextureShader7) {
@@ -535,6 +545,7 @@ void CGxDeviceGLL::IRsSendToHw(EGxRenderState which) {
         }
         case GxRs_NormalizeNormals:
             if (value) glEnable(GL_NORMALIZE); else glDisable(GL_NORMALIZE);
+            this->m_glDevice.m_States.fixedFunc.normalizeNormal = value != 0;
             break;
         case GxRs_ColorWrite:
             this->m_glDevice.SetColorWriteMask(value & 1, value & 2, value & 4, value & 8, 0);
@@ -559,6 +570,7 @@ void CGxDeviceGLL::IRsSendToHw(EGxRenderState which) {
         }
         case GxRs_PointScale:
             glPointSize(static_cast<float>(state->m_value));
+            this->m_glDevice.m_States.fixedFunc.pointSprite.size = static_cast<float>(state->m_value);
             break;
         case GxRs_PointScaleAttenuation: {
             // CGxStateBom stores vector components inline, not through a pointer.
@@ -567,15 +579,18 @@ void CGxDeviceGLL::IRsSendToHw(EGxRenderState which) {
                 if (!std::isfinite(attenuation) || attenuation < 0) unsupported();
             }
             glPointParameterfvARB(GL_POINT_DISTANCE_ATTENUATION_ARB, state->m_value.m_data.f);
+            std::memcpy(this->m_glDevice.m_States.fixedFunc.pointSprite.attenuation, state->m_value.m_data.f, sizeof(float) * 3);
             break;
         }
         case GxRs_PointScaleMin:
         case GxRs_PointScaleMax:
             glPointParameterfARB(which == GxRs_PointScaleMin ? GL_POINT_SIZE_MIN_ARB : GL_POINT_SIZE_MAX_ARB, static_cast<float>(state->m_value));
+            (which == GxRs_PointScaleMin ? this->m_glDevice.m_States.fixedFunc.pointSprite.min : this->m_glDevice.m_States.fixedFunc.pointSprite.max) = static_cast<float>(state->m_value);
             break;
         case GxRs_PointSprite:
             if (value) unsupported(); // Point sprites are not part of the implemented vertex path.
             glDisable(GL_POINT_SPRITE_ARB);
+            this->m_glDevice.m_States.fixedFunc.pointSprite.enable = false;
             break;
         case GxRs_BlendFactor: {
             const float factor = static_cast<float>(state->m_value);
