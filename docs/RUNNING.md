@@ -1,5 +1,10 @@
 # Running Northrend
 
+Official platforms are Windows 11 25H2+, macOS Tahoe 26+ on Apple Silicon
+(`arm64`), and Ubuntu 26.04 LTS+, including newer releases. See
+[Supported Platform Baseline](BUILDING.md#supported-platform-baseline) for the
+support policy and the distinction between CI and runtime validation.
+
 Use a complete, legitimately obtained World of Warcraft **3.3.5a build 12340**
 data set. Windows-edition MPQ archives are useful on the native macOS client;
 a Windows executable or Wine is not needed to read those archives. Never add

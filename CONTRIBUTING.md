@@ -76,6 +76,17 @@ Since Northrend is a faithful implementation of the original 3.3.5a (build 12340
 
 * Implementations of classes, templates, and functions that may have been present in Tempest [should be added to typhoon](https://github.com/whoahq/typhoon), the Tempest implementation for Northrend.
 
+## Supported platforms
+
+Target Windows 11 25H2+, macOS Tahoe 26+ on Apple Silicon (`arm64`), and Ubuntu
+26.04 LTS+, including newer releases. Use current compilers and SDKs. See
+[Supported Platform Baseline](docs/BUILDING.md#supported-platform-baseline).
+Compatibility patches solely for obsolete operating systems should generally
+not be accepted; retaining harmless inherited code does not create a support
+commitment. Do not constrain new architecture to preserve Intel macOS or other
+legacy targets. Platform-baseline updates must preserve Debug/Release validation
+on all three platforms and distinguish hosted CI from desktop runtime evidence.
+
 ## Quality bar
 
 Northrend is held to a first-class client standard. Do not merge placeholder implementations, hard-coded shortcuts, knowingly fragile state transitions, silent error handling, or changes that merely make a happy-path demo work. Prefer complete behavior, diagnostics, tests, documentation, and measured performance. If a temporary compatibility shim is unavoidable, make it explicit and track its removal.

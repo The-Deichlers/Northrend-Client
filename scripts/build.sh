@@ -21,8 +21,8 @@ if [[ "$asan" == ON ]]; then build_dir="$build_dir-asan"; fi
 if [[ "$clean" == 1 ]]; then rm -rf "$build_dir"; fi
 git -C "$root" submodule update --init --recursive
 cmake_args=(-S "$root" -B "$build_dir" "-DCMAKE_BUILD_TYPE=$configuration" "-DWHOA_ASAN=$asan")
-if [[ "$(uname -s)" == Darwin && "$(uname -m)" == arm64 ]]; then
-    cmake_args+=(-DCMAKE_OSX_ARCHITECTURES=arm64)
+if [[ "$(uname -s)" == Darwin ]]; then
+    cmake_args+=(-DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_OSX_DEPLOYMENT_TARGET=26.0)
 fi
 cmake "${cmake_args[@]}"
 cmake --build "$build_dir" --config "$configuration" --parallel "${NORTHREND_BUILD_JOBS:-8}"
