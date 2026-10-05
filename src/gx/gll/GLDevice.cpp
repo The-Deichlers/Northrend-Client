@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstring>
 #include <type_traits>
+#include <OpenGL/OpenGL.h>
 #include <ApplicationServices/ApplicationServices.h>
 #include <bc/Debug.hpp>
 
@@ -88,9 +89,63 @@ GLDevice::RendererInfo GLDevice::GetRendererInfo() {
 }
 
 void GLDevice::InitRendererInfo() {
-    // TODO
-
-    GLDevice::m_RendererInfo.init = 1;
+    if (!CGLGetCurrentContext()) return;
+    RendererInfo info;
+    const auto vendor = glGetString(GL_VENDOR);
+    const auto renderer = glGetString(GL_RENDERER);
+    const auto version = glGetString(GL_VERSION);
+    const auto extensions = reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS));
+    if (!vendor || !renderer || !version || !extensions) return;
+    info.vendor = reinterpret_cast<const char*>(vendor);
+    info.renderer = reinterpret_cast<const char*>(renderer);
+    info.version = reinterpret_cast<const char*>(version);
+    auto has = [extensions](const char* extension) { return GllHasExtension(extensions, extension); };
+    // Discard earlier errors: the validity below describes these queries only.
+    while (glGetError() != GL_NO_ERROR) {}
+    GLint fixedUnits = 0, fragmentUnits = 0, attributes = 0, textureSize = 0, cubeSize = 0;
+    glGetIntegerv(GL_MAX_TEXTURE_UNITS, &fixedUnits);
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &fragmentUnits);
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS_ARB, &attributes);
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &textureSize);
+    glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &cubeSize);
+    info.hardware.textureUnits = std::min(fixedUnits, fragmentUnits);
+    info.hardware.vertexAttributes = attributes;
+    info.hardware.textureSize = textureSize;
+    info.hardware.cubeSize = cubeSize;
+    if (has("GL_ARB_texture_rectangle") || has("GL_EXT_texture_rectangle")) {
+        GLint size = 0;
+        glGetIntegerv(GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB, &size);
+        info.hardware.rectangleSize = size;
+    }
+    if (has("GL_EXT_texture_filter_anisotropic")) {
+        GLfloat anisotropy = 1.0f;
+        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &anisotropy);
+        info.hardware.anisotropy = static_cast<int>(anisotropy);
+    }
+    info.hardware.s3tc = has("GL_EXT_texture_compression_s3tc");
+    info.hardware.vertexProgram = has("GL_ARB_vertex_program");
+    info.hardware.fragmentProgram = has("GL_ARB_fragment_program");
+    info.hardware.nonPowerOfTwo = has("GL_ARB_texture_non_power_of_two");
+    GLint clips = 0;
+    glGetIntegerv(GL_MAX_CLIP_PLANES, &clips);
+    info.unk36 = std::max(clips, 0);
+    if (has("GL_EXT_framebuffer_object")) {
+        GLint attachments = 0;
+        glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, &attachments);
+        info.max_color_attachments = std::max(attachments, 1);
+    }
+    info.hardware.valid = glGetError() == GL_NO_ERROR;
+    GLint rendererID = 0;
+    CGLGetParameter(CGLGetCurrentContext(), kCGLCPCurrentRendererID, &rendererID);
+    info.renderer_id = rendererID;
+    if (info.vendor.find("Apple") != std::string::npos) info.vendor_id = 0x106b;
+    else if (info.vendor.find("Intel") != std::string::npos) info.vendor_id = 0x8086;
+    else if (info.vendor.find("ATI") != std::string::npos || info.vendor.find("AMD") != std::string::npos) info.vendor_id = 0x1002;
+    else if (info.vendor.find("NVIDIA") != std::string::npos) info.vendor_id = 0x10de;
+    m_ExtARBShadow = has("GL_ARB_shadow");
+    m_ExtColorMaskIndexed = has("GL_EXT_draw_buffers2");
+    info.init = info.hardware.valid;
+    m_RendererInfo = info;
 }
 
 void GLDevice::InitPools() {

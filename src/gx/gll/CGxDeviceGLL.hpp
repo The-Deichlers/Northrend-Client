@@ -54,7 +54,7 @@ class CGxDeviceGLL : public CGxDevice {
         char* IBufLock(CGxBuf*);
         int32_t IBufUnlock(CGxBuf*);
         void ISceneBegin();
-        void ISetCaps(const CGxFormat& format);
+        const char* ISetCaps(const CGxFormat& format);
         void IShaderBindPixel(CGxShader*);
         void IShaderBindVertex(CGxShader*);
         void IShaderConstantsFlush(void);

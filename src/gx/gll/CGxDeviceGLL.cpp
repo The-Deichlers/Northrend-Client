@@ -3,6 +3,7 @@
 #include "event/Input.hpp"
 #include "os/Input.hpp"
 #include "gx/Blit.hpp"
+#include "gx/Device.hpp"
 #include "gx/CGxBatch.hpp"
 #include "gx/Shader.hpp"
 #include "gx/Window.hpp"
@@ -214,7 +215,11 @@ int32_t CGxDeviceGLL::DeviceCreate(int32_t (*windowProc)(void* window, uint32_t 
 
         GLDevice::SetOption(GLDevice::eUseHybridShader, true);
 
-        this->ISetCaps(format);
+        if (const char* error = this->ISetCaps(format)) {
+            GxLog("Fatal GLL capability initialization: %s", error);
+            std::fprintf(stderr, "Northrend: %s\n", error);
+            return 0;
+        }
 
         // TODO
         // CGxDevice::Log(this, this + 604);
@@ -672,41 +677,14 @@ void CGxDeviceGLL::ISceneBegin() {
     // TODO GameMovie::ReadFrame(this);
 }
 
-void CGxDeviceGLL::ISetCaps(const CGxFormat& format) {
-    // TODO fill in proper implementation
-
-    this->m_caps.m_pixelCenterOnEdge = 1;
-    this->m_caps.m_texelCenterOnEdge = 1;
-
-    this->m_caps.m_colorFormat = GxCF_rgba;
-
-    this->m_caps.m_generateMipMaps = 1;
-
-    this->m_caps.int10 = 1;
-
-    this->m_caps.m_texFmt[GxTex_Dxt1] = 1;
-    this->m_caps.m_texFmt[GxTex_Dxt3] = 1;
-    this->m_caps.m_texFmt[GxTex_Dxt5] = 1;
-
-    this->m_caps.m_shaderTargets[GxSh_Vertex] = GxShVS_arbvp1;
-    this->m_caps.m_shaderTargets[GxSh_Pixel] = GxShPS_arbfp1;
-
-    this->m_caps.m_texFilterAnisotropic = 1;
-    this->m_caps.m_maxTexAnisotropy = 16;
-
-    this->m_caps.m_texTarget[GxTex_2d] = 1;
-    this->m_caps.m_texTarget[GxTex_CubeMap] = 1;
-    this->m_caps.m_texTarget[GxTex_Rectangle] = 1;
-    this->m_caps.m_texTarget[GxTex_NonPow2] = 1;
-
-    this->m_caps.m_texMaxSize[GxTex_2d] = 4096;
-    this->m_caps.m_texMaxSize[GxTex_CubeMap] = 4096;
-    this->m_caps.m_texMaxSize[GxTex_Rectangle] = 4096;
-    this->m_caps.m_texMaxSize[GxTex_NonPow2] = 4096;
-
-    this->m_caps.m_hwCursor = 0;
-
-    // TODO
+const char* CGxDeviceGLL::ISetCaps(const CGxFormat& format) {
+    const auto info = GLDevice::GetRendererInfo();
+    if (const char* error = GllTranslateCaps(info.hardware, this->m_caps)) return error;
+    GxLog("OpenGL: vendor=%s; renderer=%s; version=%s", info.vendor.c_str(), info.renderer.c_str(), info.version.c_str());
+    GxLog("GLL capabilities: texture units=%d; attributes=%d; streams=%d; texture size=%u; anisotropy=%u; ARB programs=yes; S3TC=yes",
+        this->m_caps.m_numTmus, info.hardware.vertexAttributes, this->m_caps.m_numStreams,
+        this->m_caps.m_texMaxSize[GxTex_2d], this->m_caps.m_maxTexAnisotropy);
+    return nullptr;
 }
 
 void CGxDeviceGLL::IShaderBindPixel(CGxShader* sh) {
