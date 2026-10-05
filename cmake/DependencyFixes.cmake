@@ -31,6 +31,27 @@ northrend_correct_source(bc lib/bc/bc/string/Format.cpp
     "    formatNative = buffer;"
     "    formatNative = translatedformat;")
 
+# Common's macOS clock returns milliseconds, not tenths of milliseconds. Keep
+# fractional mach timebase ratios and the inherited millisecond sleep contract.
+if (WHOA_SYSTEM_MAC)
+    set(mac_time_path "lib/common/common/time/mac/Time.cpp")
+    file(READ "${CMAKE_SOURCE_DIR}/${mac_time_path}" mac_time_original)
+    set(mac_time_contents "${mac_time_original}")
+    foreach (required IN ITEMS "#include <unistd.h>"
+            "return ticks * (timebase.numer / timebase.denom) / 100000;" "usleep(duration);")
+        string(FIND "${mac_time_contents}" "${required}" match)
+        if (match EQUAL -1)
+            message(FATAL_ERROR "macOS clock correction no longer applies: ${required}")
+        endif ()
+    endforeach ()
+    string(REPLACE "#include <unistd.h>"
+        "#include <unistd.h>\n#include \"${CMAKE_SOURCE_DIR}/src/util/ClockConversion.hpp\"\n#include <chrono>\n#include <thread>" mac_time_contents "${mac_time_contents}")
+    string(REPLACE "return ticks * (timebase.numer / timebase.denom) / 100000;"
+        "return ClockTicksToMilliseconds(ticks, timebase.numer, timebase.denom);" mac_time_contents "${mac_time_contents}")
+    string(REPLACE "usleep(duration);" "std::this_thread::sleep_for(std::chrono::milliseconds(duration));" mac_time_contents "${mac_time_contents}")
+    northrend_correct_source(common "${mac_time_path}" "${mac_time_original}" "${mac_time_contents}")
+endif ()
+
 # PrependDefaultDir can return the input filename without filling newfilename.
 # Create the parent directory of the actual filename in either case.
 northrend_correct_source(storm lib/squall/storm/Log.cpp
