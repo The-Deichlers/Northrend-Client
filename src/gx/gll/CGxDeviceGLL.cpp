@@ -4,6 +4,7 @@
 #include "os/Input.hpp"
 #include "gx/Blit.hpp"
 #include "gx/Device.hpp"
+#include "gx/GllRenderState.hpp"
 #include "gx/CGxBatch.hpp"
 #include "gx/Shader.hpp"
 #include "gx/Window.hpp"
@@ -249,7 +250,7 @@ int32_t CGxDeviceGLL::DeviceSetFormat(const CGxFormat& format) {
         GLTF_D32
     };
 
-    bool v7 = false;
+    bool v7 = format.window != 0;
     bool v10 = false;
 
     Rect v15 = {
@@ -300,6 +301,13 @@ int32_t CGxDeviceGLL::DeviceSetFormat(const CGxFormat& format) {
 
         v7 = true;
         v10 = true;
+    }
+
+    if (format.window && format.maximize == 1) {
+        if (![this->m_glWindow.m_Window isZoomed]) [this->m_glWindow.m_Window zoom:nil];
+        const auto maximized = this->m_glWindow.GetRect();
+        v15.right = static_cast<int16_t>(maximized.size.width);
+        v15.bottom = static_cast<int16_t>(maximized.size.height);
     }
 
     CRect wind = {
@@ -452,11 +460,123 @@ int32_t CGxDeviceGLL::IBufUnlock(CGxBuf* buf) {
 }
 
 void CGxDeviceGLL::IRsSendToHw(EGxRenderState which) {
+    if (const char* error = GllValidateScalarState(which, 0)) {
+        SErrPrepareAppFatal(__FILE__, __LINE__); SErrDisplayAppFatal("GLL state %d: %s", which, error);
+    }
     auto state = &this->m_appRenderStates[which];
+    const int value = static_cast<int32_t>(state->m_value);
+    if (const char* error = GllValidateScalarState(which, value)) {
+        SErrPrepareAppFatal(__FILE__, __LINE__); SErrDisplayAppFatal("GLL state %d: %s", which, error);
+    }
+    auto unsupported = [which]() {
+        GxLog("Fatal: unsupported required GLL render state %d", which);
+        SErrPrepareAppFatal(__FILE__, __LINE__); SErrDisplayAppFatal("GLL required render state %d is not implemented", which);
+    };
+    if (which >= GxRs_ColorOp0 && which <= GxRs_AlphaOp7) {
+        const bool alpha = which >= GxRs_AlphaOp0;
+        const int stage = which - (alpha ? GxRs_AlphaOp0 : GxRs_ColorOp0);
+        const auto translated = GllTranslateTextureCombine(value);
+        const GLenum operations[] = {GL_MODULATE, GL_ADD, GL_REPLACE, GL_INTERPOLATE};
+        const GLenum sources[] = {GL_TEXTURE, GL_PREVIOUS, GL_PRIMARY_COLOR};
+        this->m_glDevice.SetActiveTexture(stage);
+        const GLenum combine = alpha ? GL_COMBINE_ALPHA : GL_COMBINE_RGB;
+        const GLenum arg0 = alpha ? GL_SOURCE0_ALPHA : GL_SOURCE0_RGB;
+        const GLenum arg1 = alpha ? GL_SOURCE1_ALPHA : GL_SOURCE1_RGB;
+        const GLenum arg2 = alpha ? GL_SOURCE2_ALPHA : GL_SOURCE2_RGB;
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+        glTexEnvi(GL_TEXTURE_ENV, combine, operations[translated.operation]);
+        glTexEnvi(GL_TEXTURE_ENV, arg0, sources[translated.first]);
+        glTexEnvi(GL_TEXTURE_ENV, arg1, sources[translated.second]);
+        glTexEnvi(GL_TEXTURE_ENV, arg2, sources[translated.weight]);
+        glTexEnvi(GL_TEXTURE_ENV, alpha ? GL_OPERAND2_ALPHA : GL_OPERAND2_RGB, GL_SRC_ALPHA);
+        glTexEnvi(GL_TEXTURE_ENV, alpha ? GL_ALPHA_SCALE : GL_RGB_SCALE, translated.scale);
+        return;
+    }
+    if (which >= GxRs_TextureShader0 && which <= GxRs_TextureShader7) {
+        // Legacy NVIDIA texture-shader mode is disabled for the ARB program path.
+        if (value != 0) unsupported();
+        return;
+    }
+    if (which >= GxRs_TextureCoord0 && which <= GxRs_TextureCoord7) {
+        // GLL vertex formats map texture coordinates directly to fixed slots.
+        if (value != which - GxRs_TextureCoord0) unsupported();
+        return;
+    }
 
     switch (which) {
-        // TODO
-        // - remaining render states
+        case GxRs_PolygonOffset:
+            this->m_glDevice.SetDepthBias(-static_cast<float>(state->m_value), 0.0f);
+            break;
+        case GxRs_MatDiffuse:
+        case GxRs_MatEmissive:
+        case GxRs_MatSpecular: {
+            const CImVector color = static_cast<CImVector>(state->m_value);
+            const GLColor4f material = {color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f};
+            auto& cached = this->m_glDevice.m_States.fixedFunc.lighting.material;
+            if (which == GxRs_MatDiffuse) cached.diffuse = material;
+            if (which == GxRs_MatEmissive) cached.emission = material;
+            if (which == GxRs_MatSpecular) cached.specular = material;
+            glMaterialfv(GL_FRONT_AND_BACK, which == GxRs_MatDiffuse ? GL_DIFFUSE : which == GxRs_MatEmissive ? GL_EMISSION : GL_SPECULAR, reinterpret_cast<const GLfloat*>(&material));
+            break;
+        }
+        case GxRs_MatSpecularExp: {
+            const float exponent = static_cast<float>(state->m_value);
+            if (!std::isfinite(exponent) || exponent < 0 || exponent > 128) unsupported();
+            this->m_glDevice.m_States.fixedFunc.lighting.material.shininess = exponent;
+            glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, exponent);
+            break;
+        }
+        case GxRs_NormalizeNormals:
+            if (value) glEnable(GL_NORMALIZE); else glDisable(GL_NORMALIZE);
+            break;
+        case GxRs_ColorWrite:
+            this->m_glDevice.SetColorWriteMask(value & 1, value & 2, value & 4, value & 8, 0);
+            break;
+        case GxRs_ClipPlaneMask: {
+            const auto count = std::min(GLDevice::GetRendererInfo().unk36, uint32_t(6));
+            if (value < 0 || (static_cast<uint32_t>(value) >> count)) unsupported();
+            for (uint32_t i = 0; i < count; ++i) {
+                if (value & (1 << i)) unsupported(); // Plane equations are not supplied by GLL yet.
+                glDisable(GL_CLIP_PLANE0 + i);
+            }
+            this->m_glDevice.m_States.rasterizer.clipPlaneMask = value;
+            break;
+        }
+        case GxRs_Multisample:
+            if (value) glEnable(GL_MULTISAMPLE); else glDisable(GL_MULTISAMPLE);
+            break;
+        case GxRs_ScissorTest: {
+            const auto viewport = this->m_glDevice.m_States.rasterizer.viewport;
+            this->m_glDevice.SetScissor(value != 0, viewport);
+            break;
+        }
+        case GxRs_PointScale:
+            glPointSize(std::max(static_cast<float>(state->m_value), 1.0f));
+            break;
+        case GxRs_PointScaleAttenuation: {
+            // CGxStateBom stores vector components inline, not through a pointer.
+            glPointParameterfvARB(GL_POINT_DISTANCE_ATTENUATION_ARB, state->m_value.m_data.f);
+            break;
+        }
+        case GxRs_PointScaleMin:
+        case GxRs_PointScaleMax:
+            glPointParameterfARB(which == GxRs_PointScaleMin ? GL_POINT_SIZE_MIN_ARB : GL_POINT_SIZE_MAX_ARB, std::max(static_cast<float>(state->m_value), 0.0f));
+            break;
+        case GxRs_PointSprite:
+            if (value) unsupported(); // Point sprites are not part of the implemented vertex path.
+            glDisable(GL_POINT_SPRITE_ARB);
+            break;
+        case GxRs_BlendFactor: {
+            const float factor = static_cast<float>(state->m_value);
+            if (!std::isfinite(factor) || factor < 0 || factor > 1) unsupported();
+            glBlendColor(factor, factor, factor, factor);
+            break;
+        }
+        case GxRs_ColorMaterial:
+            if (value) unsupported(); // Material-source translation remains unsupported.
+            glDisable(GL_COLOR_MATERIAL);
+            this->m_glDevice.m_States.fixedFunc.lighting.material.colorTracking = false;
+            break;
 
         case GxRs_BlendingMode: {
             int32_t blend = static_cast<int32_t>(state->m_value);
@@ -617,6 +737,10 @@ void CGxDeviceGLL::IRsSendToHw(EGxRenderState which) {
         case GxRs_Texture15: {
             int32_t tmu = which - GxRs_Texture0;
 
+            if (tmu >= this->m_caps.m_numTmus) {
+                if (static_cast<void*>(state->m_value)) unsupported();
+                break;
+            }
             if (tmu <= 15) {
                 CGxTex* texture = static_cast<CGxTex*>(static_cast<void*>(state->m_value));
 
@@ -642,8 +766,10 @@ void CGxDeviceGLL::IRsSendToHw(EGxRenderState which) {
         case GxRs_TexGen5:
         case GxRs_TexGen6:
         case GxRs_TexGen7: {
-            // TODO
-
+            const int stage = which - GxRs_TexGen0;
+            if (value != 0) unsupported();
+            this->m_glDevice.SetActiveTexture(stage);
+            for (auto coordinate : {GL_TEXTURE_GEN_S, GL_TEXTURE_GEN_T, GL_TEXTURE_GEN_R, GL_TEXTURE_GEN_Q}) glDisable(coordinate);
             break;
         }
 
@@ -662,7 +788,7 @@ void CGxDeviceGLL::IRsSendToHw(EGxRenderState which) {
         }
 
         default: {
-            fprintf(stderr, "Unhandled render state in CGxDeviceGLL::IRsSendToHw: %i\n", which);
+            unsupported();
 
             break;
         }
@@ -1161,6 +1287,12 @@ void CGxDeviceGLL::IXformSetView(const C44Matrix& matrix) {
 
 void CGxDeviceGLL::IXformSetViewport() {
     auto window = this->DeviceCurWindow();
+    // Drawing to the window-system framebuffer uses physical drawable pixels.
+    // Offscreen buffers retain their own logical texture dimensions.
+    if (this->m_glDevice.m_UseWindowSystemBuffer) {
+        window.maxX = this->m_glDevice.m_Context.GetBackingWidth();
+        window.maxY = this->m_glDevice.m_Context.GetBackingHeight();
+    }
 
     GLRect viewport = {
         static_cast<int32_t>((this->m_viewport.x.l * window.maxX) + 0.5f),

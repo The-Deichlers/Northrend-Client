@@ -52,11 +52,11 @@ inline const char* GllTranslateCaps(const GllHardwareCaps& hardware, CGxCaps& ca
     for (auto format : {GxTex_Abgr8888, GxTex_Argb8888, GxTex_Argb4444,
                        GxTex_Argb1555, GxTex_Rgb565, GxTex_Dxt1, GxTex_Dxt3, GxTex_Dxt5})
         caps.m_texFmt[format] = 1;
-    caps.m_texTarget[GxTex_2d] = caps.m_texTarget[GxTex_CubeMap] = 1;
+    caps.m_texTarget[GxTex_2d] = 1;
     caps.m_texMaxSize[GxTex_2d] = hardware.textureSize;
-    caps.m_texMaxSize[GxTex_CubeMap] = hardware.cubeSize;
-    caps.m_texTarget[GxTex_Rectangle] = hardware.rectangleSize > 0;
-    caps.m_texMaxSize[GxTex_Rectangle] = std::max(hardware.rectangleSize, 0);
+    // CreateTextureCubeMap is unimplemented; rectangles also lack an upload path.
+    // Hardware support is recorded separately and must not imply backend support.
+
     caps.m_texTarget[GxTex_NonPow2] = hardware.nonPowerOfTwo;
     caps.m_texMaxSize[GxTex_NonPow2] = hardware.nonPowerOfTwo ? hardware.textureSize : 0;
     caps.m_texFilterAnisotropic = hardware.anisotropy > 1;

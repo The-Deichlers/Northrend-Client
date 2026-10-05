@@ -1,5 +1,6 @@
 #include "gx/gll/GLDevice.h"
 #include "gx/gll/GLPool.h"
+#include "gx/Device.hpp"
 #include "gx/gll/GLUtil.h"
 #include "util/Autorelease.hpp"
 #include <algorithm>
@@ -1205,8 +1206,8 @@ void GLDevice::BlitFramebuffer(GLMipmap* src, const GLRect* srcRect, GLMipmap* d
     GLRect fullDstRect = {
         0,
         0,
-        dst ? dst->GetWidth() : this->m_Context.GetWidth(),
-        dst ? dst->GetHeight() : this->m_Context.GetHeight()
+        dst ? dst->GetWidth() : this->m_Context.GetBackingWidth(),
+        dst ? dst->GetHeight() : this->m_Context.GetBackingHeight()
     };
 
     BC_ASSERT(filter == GL_NEAREST);
@@ -1337,6 +1338,10 @@ void GLDevice::BlitFramebuffer(GLMipmap* src, const GLRect* srcRect, GLMipmap* d
     this->m_DefaultVertexArrayObject.m_Properties.m_VertexBase = 0;
     GLVertexArray::FindVertexArray(this, this->m_DefaultVertexArrayObject);
 
+    if (this->m_FrameNumber == 1) {
+        GLint vp[4] = {}; glGetIntegerv(GL_VIEWPORT, vp);
+        GxLog("GLL present: source=%dx%d; drawable=%ux%u; viewport=%d,%d,%d,%d; windowed=%d", fullSrcRect.width, fullSrcRect.height, width, height, vp[0], vp[1], vp[2], vp[3], this->m_Context.m_Windowed);
+    }
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     this->SetShader(GLShader::eVertexShader, vertexShader);
@@ -2390,6 +2395,10 @@ void GLDevice::SetDisplay(uint32_t width, uint32_t height, GLTextureFormat a4, G
         this->m_Context.SetFullscreenMode(width, height, a6, a8);
     }
 
+    if (this->m_UseWindowSystemBuffer && this->m_Context.m_Window) {
+        width = this->m_Context.GetBackingWidth();
+        height = this->m_Context.GetBackingHeight();
+    }
     this->ResetBackbuffer(width, height, a4, a5, v9);
 
     if (this->m_Context.m_Window) {
@@ -2519,7 +2528,14 @@ void GLDevice::SetModelView(GLEnum transform) {
 }
 
 void GLDevice::SetScissor(bool a2, const GLRect& a3) {
-    // TODO
+    if (this->m_States.rasterizer.scissorEnable != a2) {
+        if (a2) glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
+        this->m_States.rasterizer.scissorEnable = a2;
+    }
+    if (std::memcmp(&this->m_States.rasterizer.scissor, &a3, sizeof(a3))) {
+        glScissor(a3.left, a3.top, a3.width, a3.height);
+        this->m_States.rasterizer.scissor = a3;
+    }
 }
 
 void GLDevice::SetShader(GLShader::ShaderType shaderType, GLShader* shader) {
