@@ -11,13 +11,25 @@ if (${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     )
 endif ()
 
-# OS variables
-if (APPLE AND NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "macOS Deployment Target")
+# Official macOS builds target Tahoe on Apple Silicon. Set defaults before
+# project() initializes the compiler; explicit experimental overrides remain possible.
+if (APPLE)
+    if (NOT DEFINED CMAKE_OSX_DEPLOYMENT_TARGET)
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "26.0" CACHE STRING "macOS deployment target (supported: 26.0+)")
+    endif ()
+    if (NOT DEFINED CMAKE_OSX_ARCHITECTURES)
+        set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE STRING "macOS architecture (supported: arm64)")
+    endif ()
 endif ()
 
 # Project
 project(Northrend)
+
+message(STATUS "Northrend platform: ${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_VERSION}; architecture=${CMAKE_SYSTEM_PROCESSOR}")
+message(STATUS "Northrend compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}; ${CMAKE_CXX_COMPILER}")
+if (APPLE)
+    message(STATUS "Northrend macOS deployment=${CMAKE_OSX_DEPLOYMENT_TARGET}; architectures=${CMAKE_OSX_ARCHITECTURES}")
+endif ()
 
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "dist" CACHE PATH "Installation prefix" FORCE)
