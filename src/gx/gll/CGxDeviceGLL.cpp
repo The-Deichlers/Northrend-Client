@@ -472,6 +472,14 @@ void CGxDeviceGLL::IRsSendToHw(EGxRenderState which) {
         GxLog("Fatal: unsupported required GLL render state %d", which);
         SErrPrepareAppFatal(__FILE__, __LINE__); SErrDisplayAppFatal("GLL required render state %d is not implemented", which);
     };
+    if (which == GxRs_PolygonOffset || which == GxRs_PointScale ||
+        which == GxRs_PointScaleMin || which == GxRs_PointScaleMax ||
+        which == GxRs_MatSpecularExp || which == GxRs_BlendFactor) {
+        if (const char* error = GllValidateFloatState(which, static_cast<float>(state->m_value))) {
+            SErrPrepareAppFatal(__FILE__, __LINE__);
+            SErrDisplayAppFatal("GLL state %d: %s", which, error);
+        }
+    }
     if (which >= GxRs_ColorOp0 && which <= GxRs_AlphaOp7) {
         const bool alpha = which >= GxRs_AlphaOp0;
         const int stage = which - (alpha ? GxRs_AlphaOp0 : GxRs_ColorOp0);
@@ -521,7 +529,6 @@ void CGxDeviceGLL::IRsSendToHw(EGxRenderState which) {
         }
         case GxRs_MatSpecularExp: {
             const float exponent = static_cast<float>(state->m_value);
-            if (!std::isfinite(exponent) || exponent < 0 || exponent > 128) unsupported();
             this->m_glDevice.m_States.fixedFunc.lighting.material.shininess = exponent;
             glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, exponent);
             break;
@@ -551,16 +558,20 @@ void CGxDeviceGLL::IRsSendToHw(EGxRenderState which) {
             break;
         }
         case GxRs_PointScale:
-            glPointSize(std::max(static_cast<float>(state->m_value), 1.0f));
+            glPointSize(static_cast<float>(state->m_value));
             break;
         case GxRs_PointScaleAttenuation: {
             // CGxStateBom stores vector components inline, not through a pointer.
+            for (int component = 0; component < 3; ++component) {
+                const float attenuation = state->m_value.m_data.f[component];
+                if (!std::isfinite(attenuation) || attenuation < 0) unsupported();
+            }
             glPointParameterfvARB(GL_POINT_DISTANCE_ATTENUATION_ARB, state->m_value.m_data.f);
             break;
         }
         case GxRs_PointScaleMin:
         case GxRs_PointScaleMax:
-            glPointParameterfARB(which == GxRs_PointScaleMin ? GL_POINT_SIZE_MIN_ARB : GL_POINT_SIZE_MAX_ARB, std::max(static_cast<float>(state->m_value), 0.0f));
+            glPointParameterfARB(which == GxRs_PointScaleMin ? GL_POINT_SIZE_MIN_ARB : GL_POINT_SIZE_MAX_ARB, static_cast<float>(state->m_value));
             break;
         case GxRs_PointSprite:
             if (value) unsupported(); // Point sprites are not part of the implemented vertex path.
@@ -568,7 +579,6 @@ void CGxDeviceGLL::IRsSendToHw(EGxRenderState which) {
             break;
         case GxRs_BlendFactor: {
             const float factor = static_cast<float>(state->m_value);
-            if (!std::isfinite(factor) || factor < 0 || factor > 1) unsupported();
             glBlendColor(factor, factor, factor, factor);
             break;
         }

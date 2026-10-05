@@ -2,6 +2,7 @@
 #define GX_GLL_RENDER_STATE_HPP
 
 #include "gx/Types.hpp"
+#include <cmath>
 
 struct GllTextureCombine {
     enum Operation { Modulate, Add, Replace, Interpolate } operation;
@@ -28,6 +29,15 @@ inline const char* GllValidateScalarState(EGxRenderState state, int value) {
     if (state == GxRs_AlphaRef && (value < 0 || value > 255)) return "invalid alpha reference";
     if (state == GxRs_ColorWrite && (value < 0 || value > 15)) return "invalid color-write mask";
     if (state >= GxRs_ColorOp0 && state <= GxRs_AlphaOp7 && (value < 0 || value > 5)) return "invalid texture-combine operation";
+    return nullptr;
+}
+
+inline const char* GllValidateFloatState(EGxRenderState state, float value) {
+    if (!std::isfinite(value)) return "render-state value must be finite";
+    if (state == GxRs_PointScale && value <= 0) return "point size must be positive";
+    if ((state == GxRs_PointScaleMin || state == GxRs_PointScaleMax) && value < 0) return "point-size limit must be nonnegative";
+    if (state == GxRs_MatSpecularExp && (value < 0 || value > 128)) return "material exponent must be in 0..128";
+    if (state == GxRs_BlendFactor && (value < 0 || value > 1)) return "blend factor must be in 0..1";
     return nullptr;
 }
 

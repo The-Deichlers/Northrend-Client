@@ -1,5 +1,19 @@
 #include "catch.hpp"
 #include "gx/GllRenderState.hpp"
+#include <limits>
+
+TEST_CASE("GLL float states reject invalid values before submission", "[gx]") {
+    CHECK(GllValidateFloatState(GxRs_PointScale, 0.5f) == nullptr);
+    CHECK(GllValidateFloatState(GxRs_PointScale, 0.0f) != nullptr);
+    CHECK(GllValidateFloatState(GxRs_PointScaleMin, -1.0f) != nullptr);
+    CHECK(GllValidateFloatState(GxRs_PointScaleMax, 0.0f) == nullptr);
+    CHECK(GllValidateFloatState(GxRs_MatSpecularExp, 128.0f) == nullptr);
+    CHECK(GllValidateFloatState(GxRs_MatSpecularExp, 129.0f) != nullptr);
+    CHECK(GllValidateFloatState(GxRs_BlendFactor, 1.0f) == nullptr);
+    CHECK(GllValidateFloatState(GxRs_BlendFactor, -0.1f) != nullptr);
+    CHECK(GllValidateFloatState(GxRs_PolygonOffset, std::numeric_limits<float>::infinity()) != nullptr);
+    CHECK(GllValidateFloatState(GxRs_PointScale, std::numeric_limits<float>::quiet_NaN()) != nullptr);
+}
 
 TEST_CASE("GLL scalar states reject unsafe table indices and masks", "[gx]") {
     CHECK(GllValidateScalarState(GxRs_BlendingMode, GxBlend_Opaque) == nullptr);
