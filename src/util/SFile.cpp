@@ -2,6 +2,7 @@
 #include <cstring>
 #include <cstdio>
 #include <limits>
+#include <mutex>
 #include <bc/Memory.hpp>
 #include <StormLib.h>
 #include <storm/Error.hpp>
@@ -16,6 +17,10 @@
 static char s_basepath[STORM_MAX_PATH] = { 0 };
 static char s_datapath[STORM_MAX_PATH] = { 0 };
 static char s_datapath2[STORM_MAX_PATH] = { 0 };
+
+// StormLib shares a seek position between files in the same archive. The async
+// texture queues and synchronous GlueXML loader must not seek/read concurrently.
+static std::mutex s_archiveMutex;
 
 uint32_t SFile::s_locale;
 
@@ -54,6 +59,7 @@ int32_t SFile::Initialize()
 
 // TODO Proper implementation
 int32_t SFile::Close(SFile* file) {
+    std::lock_guard<std::mutex> lock(s_archiveMutex);
     if (!file)
         return 1;
 
@@ -74,6 +80,7 @@ int32_t SFile::Close(SFile* file) {
 
 // TODO Proper implementation
 uint32_t SFile::GetFileSize(SFile* file, uint32_t* filesizeHigh) {
+    std::lock_guard<std::mutex> lock(s_archiveMutex);
     uint32_t high = 0;
     uint32_t low  = 0;
 
@@ -137,6 +144,7 @@ int32_t SFile::Load(SArchive* archive, const char* filename, void** buffer, size
 
     SFile* file = nullptr;
     if (!SFile::OpenEx(nullptr, filename, 0, &file)) {
+        std::fprintf(stderr, "Northrend: cannot open game file %s (MPQ error %u).\n", filename, GetLastError());
         return 0;
     }
 
@@ -147,6 +155,7 @@ int32_t SFile::Load(SArchive* archive, const char* filename, void** buffer, size
     auto data = reinterpret_cast<char*>(SMemAlloc(size + extraBytes, __FILE__, __LINE__, 0));
 
     if (!SFile::Read(file, data, size, nullptr, nullptr, nullptr)) {
+        std::fprintf(stderr, "Northrend: cannot read game file %s (%llu bytes; MPQ error %u).\n", filename, static_cast<unsigned long long>(size), GetLastError());
         SMemFree(data, __FILE__, __LINE__, 0);
         SFile::Close(file);
         return 0;
@@ -175,6 +184,7 @@ int32_t SFile::Open(const char* filename, SFile** file) {
 
 // TODO Proper implementation
 int32_t SFile::OpenEx(SArchive* archive, const char* filename, uint32_t flags, SFile** file) {
+    std::lock_guard<std::mutex> lock(s_archiveMutex);
     if (!file || !filename) {
         return 0;
     }
@@ -227,6 +237,7 @@ int32_t SFile::OpenEx(SArchive* archive, const char* filename, uint32_t flags, S
 }
 
 uint32_t SFile::SetFilePointer(SFile* file, int32_t distancetomove, int32_t* distancetomovehigh, uint32_t movemethod) {
+    std::lock_guard<std::mutex> lock(s_archiveMutex);
     switch (file->m_type) {
     case SFILE_PLAIN: {
         auto stream = reinterpret_cast<Blizzard::File::StreamRecord*>(file->m_handle);
@@ -261,6 +272,7 @@ uint32_t SFile::SetFilePointer(SFile* file, int32_t distancetomove, int32_t* dis
 
 // TODO Proper implementation
 int32_t SFile::Read(SFile* file, void* buffer, size_t bytestoread, size_t* bytesread, SOVERLAPPED* overlapped, TASYNCPARAMBLOCK* asyncparam) {
+    std::lock_guard<std::mutex> lock(s_archiveMutex);
     switch (file->m_type) {
     case SFILE_PLAIN: {
         auto stream = reinterpret_cast<Blizzard::File::StreamRecord*>(file->m_handle);

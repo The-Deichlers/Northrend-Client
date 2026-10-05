@@ -25,6 +25,12 @@ function(northrend_correct_source target relative_path before after)
     target_include_directories(${target} PRIVATE "${original_directory}")
 endfunction()
 
+# VFormat must use the translated format, not uninitialized destination bytes.
+# File lookup diagnostics exercise this on every MPQ fallback during startup.
+northrend_correct_source(bc lib/bc/bc/string/Format.cpp
+    "    formatNative = buffer;"
+    "    formatNative = translatedformat;")
+
 # PrependDefaultDir can return the input filename without filling newfilename.
 # Create the parent directory of the actual filename in either case.
 northrend_correct_source(storm lib/squall/storm/Log.cpp
