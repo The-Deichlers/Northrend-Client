@@ -58,9 +58,15 @@ Common failures:
 - Nonexistent/inaccessible root: select the correct parent of `Data`.
 - Missing `AreaTable.dbc` or `GlueXML.toc`: incomplete extraction, archives,
   locale data, or unreadable MPQs; use a complete original data set.
-- Graphics reports fewer than two texture units on macOS GLL: its inherited
-  capability initialization is incomplete; the tested Apple M2 launch stops
-  here with exit status 1. This does not establish that the GPU is unsupported.
+- Graphics capability failure: GLL queries the current OpenGL context and
+  requires at least two texture units, fourteen vertex attributes, ARB vertex/
+  fragment programs, and S3TC. The diagnostic identifies a failed query or unmet
+  requirement; startup exits 1. Effective limits also reflect implemented GLL
+  support: one interleaved vertex stream and 2D textures, with unsupported cube/
+  rectangle upload targets disabled.
+- `cannot read game file`: inspect the filename and archive error in stderr.
+  Archive operations are synchronized across synchronous XML/script loading
+  and asynchronous texture workers; use complete, readable original MPQs.
 - Further initialization failures: inspect startup, graphics and GlueXML logs.
 - Movies on macOS: no native decoder is bundled by the default build.
 - Audio: optional FMOD is disabled in the default build.
@@ -68,3 +74,9 @@ Common failures:
 Actual launch and asset-loading results are recorded in the
 [milestone report](milestones/MILESTONE-0-REPORT.md). A successful compile or
 missing-data diagnostic is not proof of successful game-data startup.
+
+On the validated Apple M2, both the clean 12340 and supplied HD data reach the
+login screen. Native window zoom/resize preserves rendering and mouse hit
+positions; character entry, backspace, the close button, and Command-Q work.
+Do not press Login during startup-only validation. Audio and movie playback
+remain outside Milestone 0; fullscreen graphics-mode switching is unvalidated.

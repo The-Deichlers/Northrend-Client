@@ -103,14 +103,17 @@ changing these options: cached options persist.
 `WHOA_ASAN` enables AddressSanitizer with frame pointers on Clang/GCC and uses the
 inherited MSVC ASan setup. Instrumented client code links into an instrumented
 process; proprietary prebuilt FMOD/Xvid components are not instrumented.
-Tests do not cover a complete game-data launch or client/server interaction.
+Automated tests use synthetic data; real game-data startup is validated manually.
+Client/server interaction is outside this milestone.
 Consult the report for observed sanitizer results and inherited warnings.
 
 `cmake/DependencyFixes.cmake` applies small verified corrections to generated
 source copies under the build directory: Storm log-directory creation, fatal
 function termination, a Common GCC header, sorted-array member double destruction,
 fixed-array Clear lifetime preservation, zero-byte big-integer buffer copying,
-bounded decimal digit-table indexing, and two inherited test defects.
+bounded decimal digit-table indexing, POSIX diagnostic format selection, macOS
+wall-clock millisecond conversion and sleep units, and
+two inherited test defects.
 It checks the original text before applying each correction and leaves pinned
 submodule working trees untouched. These corrections should eventually move
 into maintained dependency commits. CTest registers all five inherited test
